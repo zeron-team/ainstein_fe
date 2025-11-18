@@ -1,0 +1,425 @@
+/* -------------------------------------------------------------------------- */
+/*  Patients List – Layout general                                            */
+/* -------------------------------------------------------------------------- */
+
+.patients-page {
+  color: #f5f6ff;
+}
+
+.patients-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.patients-page__header h1 {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #98a5c4;
+}
+
+/* Botones de cabecera (reutiliza el estilo de pf-btn para coherencia) */
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f5f6ff;
+  transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: linear-gradient(135deg, #2a3356, #1d2746);
+  border-color: rgba(75, 182, 255, 0.6);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3a4a80, #252f59);
+}
+
+.btn--ghost {
+  background: transparent;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Filtros (estado + búsqueda)                                               */
+/* -------------------------------------------------------------------------- */
+
+.patients-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(151, 167, 207, 0.35);
+  background: rgba(7, 14, 30, 0.9);
+}
+
+.filter-icon {
+  font-size: 14px;
+  color: #8ea0cf;
+}
+
+.filter-group select {
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: #d9e4ff;
+  font-size: 13px;
+}
+
+.filter-group select option {
+  color: #0f172a;
+}
+
+/* búsqueda */
+
+.search-group {
+  flex: 1;
+  min-width: 260px;
+  display: flex;
+}
+
+.search-group input {
+  width: 100%;
+  padding: 8px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(151, 167, 207, 0.35);
+  background: rgba(6, 11, 25, 0.95);
+  color: #e9f0ff;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.search-group input::placeholder {
+  color: #7e8cb2;
+}
+
+.search-group input:focus {
+  border-color: rgba(75, 182, 255, 0.7);
+  box-shadow: 0 0 0 1px rgba(75, 182, 255, 0.6),
+    0 0 0 3px rgba(75, 182, 255, 0.18);
+  background: rgba(10, 20, 42, 0.95);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Card contenedora de la tabla                                              */
+/* -------------------------------------------------------------------------- */
+
+.patients-card {
+  border-radius: 18px;
+  border: 1px solid rgba(136, 162, 220, 0.22);
+  background:
+    radial-gradient(900px 450px at 90% -30%, rgba(75, 182, 255, 0.13), transparent),
+    rgba(7, 11, 26, 0.96);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+  padding: 10px 10px 12px;
+}
+
+.patients-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 4px 8px;
+}
+
+.patients-card__header .badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #d3dcff;
+}
+
+.patients-card__header .count {
+  font-size: 12px;
+  color: #9fb0d5;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Tabla                                                                     */
+/* -------------------------------------------------------------------------- */
+
+.patients-table-wrapper {
+  margin-top: 4px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(121, 143, 205, 0.35);
+}
+
+.patients-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: rgba(5, 10, 26, 0.98);
+}
+
+.patients-table th,
+.patients-table td {
+  padding: 10px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.patients-table th {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+  color: #9cadcd;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.patients-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.patients-table tbody tr:hover {
+  background: rgba(40, 56, 105, 0.6);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Badges de estado                                                          */
+/* -------------------------------------------------------------------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.badge svg {
+  font-size: 12px;
+}
+
+.badge--yellow {
+  background: rgba(255, 196, 86, 0.16);
+  color: #ffe0a9;
+  border-color: rgba(255, 196, 86, 0.42);
+}
+
+.badge--orange {
+  background: rgba(253, 160, 90, 0.16);
+  color: #ffddbd;
+  border-color: rgba(253, 160, 90, 0.42);
+}
+
+.badge--green {
+  background: rgba(83, 214, 149, 0.16);
+  color: #c3f7dd;
+  border-color: rgba(83, 214, 149, 0.45);
+}
+
+.badge--blue {
+  background: rgba(140, 160, 210, 0.16);
+  color: #e2e7ff;
+  border-color: rgba(140, 160, 210, 0.45);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Acciones en la fila                                                       */
+/* -------------------------------------------------------------------------- */
+
+.patients-table td > button {
+  font-size: 12px;
+}
+
+.patients-table td > button svg {
+  font-size: 12px;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Paginación                                                                */
+/* -------------------------------------------------------------------------- */
+
+.patients-pagination {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.patients-pagination .btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Overlay "cerebro pensando"                                                */
+/* -------------------------------------------------------------------------- */
+
+.epc-thinking-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 20% 0, rgba(75, 182, 255, 0.22), transparent),
+              rgba(3, 6, 18, 0.88);
+  backdrop-filter: blur(9px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.epc-thinking-card {
+  width: min(440px, 90vw);
+  padding: 22px 20px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(129, 157, 255, 0.55);
+  background:
+    radial-gradient(circle at -10% 120%, rgba(120, 90, 255, 0.25), transparent),
+    rgba(7, 10, 29, 0.98);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.epc-brain {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 0, #4bb6ff, #7b5bff);
+  box-shadow: 0 0 45px rgba(75, 182, 255, 0.85);
+  overflow: hidden;
+}
+
+.epc-brain::before,
+.epc-brain::after {
+  content: "";
+  position: absolute;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  inset: 6px;
+  opacity: 0.8;
+}
+
+.epc-brain::after {
+  inset: 14px;
+  opacity: 0.55;
+}
+
+.epc-brain-core {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 0, #ffffff, rgba(221, 244, 255, 0.1));
+  animation: epc-pulse 1.4s ease-in-out infinite;
+}
+
+.epc-thinking-text {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.epc-thinking-sub {
+  font-size: 12px;
+  color: #a9b7de;
+}
+
+/* barra de progreso */
+
+.epc-progress {
+  width: 100%;
+  margin-top: 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(96, 122, 206, 0.7);
+  background: rgba(4, 9, 26, 0.96);
+  padding: 3px;
+  overflow: hidden;
+}
+
+.epc-progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #4bb6ff, #7b5bff, #4bb6ff);
+  background-size: 180% 100%;
+  animation: epc-progress 1.5s infinite linear;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Animaciones                                                                */
+/* -------------------------------------------------------------------------- */
+
+@keyframes epc-pulse {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(173, 216, 255, 0.9);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 14px rgba(173, 216, 255, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(173, 216, 255, 0);
+  }
+}
+
+@keyframes epc-progress {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 180% 0;
+  }
+}

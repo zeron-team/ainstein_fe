@@ -1,0 +1,241 @@
+/* ==========================================================================
+   SIDEBAR · Layout general
+   ========================================================================== */
+
+.sb {
+  grid-area: sidebar;
+  width: 260px;
+  min-height: 100vh;
+
+  /* Fondo + glass */
+  background:
+    radial-gradient(800px 600px at 0% 0%, rgba(75,182,255,.18), transparent),
+    linear-gradient(180deg, #050816 0%, #090f1f 45%, #050814 100%);
+  border-right: 1px solid rgba(255, 255, 255, .06);
+
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 64px;
+  z-index: 45;
+
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.03),
+    0 18px 38px rgba(0,0,0,.75);
+}
+
+/* Marca / logo */
+.sb__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 18px 18px 12px;
+  font-weight: 800;
+  letter-spacing: .5px;
+  font-size: 18px;
+
+  color: #f1f4ff;
+}
+
+/* Pequeño “pill” para el nombre corto (ej. ZRN) */
+.sb__brand-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+
+  background: linear-gradient(135deg, #4bb6ff, #6a6cff);
+  color: #020516;
+}
+
+/* ==========================================================================
+   Navegación
+   ========================================================================== */
+
+.sb__nav {
+  padding: 8px 10px 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Scroll sutil */
+.sb__nav::-webkit-scrollbar {
+  width: 6px;
+}
+.sb__nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sb__nav::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.08);
+  border-radius: 999px;
+}
+
+.sb__section {
+  margin-bottom: 16px;
+}
+
+.sb__section__title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .9px;
+  padding: 8px 10px;
+  color: #8fa0c7;
+  opacity: .9;
+}
+
+/* Item base */
+.sb__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 12px;
+  margin: 3px 4px;
+  border-radius: 12px;
+
+  color: #cfd8ff;
+  text-decoration: none;
+  font-size: 14px;
+
+  background: transparent;
+  border: 1px solid transparent;
+
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    transform .10s ease,
+    box-shadow .18s ease,
+    color .18s ease;
+}
+
+/* Hover + focus */
+.sb__item:hover {
+  background: radial-gradient(600px 400px at 0% 0%, rgba(75,182,255,.16), transparent);
+  border-color: rgba(75,182,255,.45);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.55);
+  color: #f4f7ff;
+}
+
+/* Item activo */
+.sb__item--active {
+  background:
+    radial-gradient(700px 420px at 0% 0%, rgba(103,190,255,.26), transparent),
+    linear-gradient(135deg, rgba(42,95,255,.35), rgba(13,36,92,.9));
+  border-color: rgba(135,196,255,.9);
+  color: #ffffff;
+  box-shadow:
+    0 0 0 1px rgba(140,200,255,.35),
+    0 14px 30px rgba(0,0,0,.85);
+}
+
+/* Icono */
+.sb__icon {
+  width: 20px;
+  display: flex;
+  justify-content: center;
+  font-size: 16px;
+  opacity: .92;
+}
+
+/* Pequeño indicador a la derecha (opcional: p.ej. cantidad) */
+.sb__pill {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(8,18,40,.9);
+  border: 1px solid rgba(166,204,255,.5);
+  color: #d4e5ff;
+}
+
+/* ==========================================================================
+   Footer / usuario
+   ========================================================================== */
+
+.sb__footer {
+  padding: 12px 12px 16px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  background: linear-gradient(180deg, rgba(9,14,26,.96), rgba(5,8,16,.98));
+  backdrop-filter: blur(18px);
+}
+
+.sb__user {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 4px 10px;
+  color: #9db1e6;
+}
+
+.sb__user-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sb__user__role {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  font-weight: 700;
+  opacity: .9;
+  color: #c3d4ff;
+}
+
+/* Botón logout */
+.sb__logout {
+  width: 100%;
+  margin-top: 4px;
+
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 12px;
+
+  background: linear-gradient(135deg, #ff4b6a, #fd7b52);
+  color: #fff3f5;
+  padding: 9px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+
+  box-shadow: 0 12px 28px rgba(0,0,0,.75);
+  transition: transform .08s ease, filter .18s ease, box-shadow .18s ease;
+}
+.sb__logout:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(0,0,0,.85);
+}
+.sb__logout-icon {
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   Móvil: sidebar deslizable
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+  .sb {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    height: calc(100vh - 64px);
+    min-height: 0;
+    transform: translateX(-100%);
+    transition: transform .2s ease-out, box-shadow .2s ease-out;
+    box-shadow: 0 0 0 rgba(0,0,0,0);
+  }
+
+  .sb.sb--open {
+    transform: translateX(0%);
+    box-shadow: 0 20px 40px rgba(0,0,0,.9);
+  }
+}

@@ -1,0 +1,48 @@
+/* Design Tokens: colores, tipografías, radios, sombras */
+:root {
+  /* Brand */
+  --brand: #60a5fa;             /* azul primario */
+  --brand-strong: #3b82f6;
+  --brand-weak: #93c5fd;
+
+  /* Surface + fondo */
+  --bg: #0b1220;
+  --bg-gradient-1: rgba(56, 189, 248, 0.08);
+  --bg-gradient-2: rgba(99, 102, 241, 0.10);
+
+  --surface-0: #0e172a;         /* base cards */
+  --surface-1: #111a30;         /* glass */
+  --surface-2: #0b1326;         /* header/sidebar */
+
+  /* Bordes y sombras */
+  --border: rgba(122, 162, 247, 0.18);
+  --shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+
+  /* Texto */
+  --text: #eef2ff;
+  --muted: #9db0cc;
+
+  /* Estados / feedback */
+  --ok: #10b981;
+  --warn: #f59e0b;
+  --error: #ef4444;
+  --info: #38bdf8;
+
+  /* Radios */
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 20px;
+  --r-xl: 26px;
+
+  /* Espaciado base */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+
+  /* Z layers */
+  --z-header: 50;
+  --z-sidebar: 40;
+}

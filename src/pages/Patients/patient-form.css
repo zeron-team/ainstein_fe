@@ -1,0 +1,392 @@
+/* -------------------------------------------------------------------------- */
+/*  Patient Form – Card / Layout                                              */
+/* -------------------------------------------------------------------------- */
+
+.pf-card {
+  --pf-border: rgba(129, 157, 255, 0.15);
+  --pf-surface: rgba(8, 14, 31, 0.9);
+  --pf-surface-soft: rgba(16, 26, 56, 0.9);
+  --pf-surface-strong: rgba(11, 20, 43, 0.98);
+  --pf-text: #f3f5ff;
+  --pf-text-muted: #9ea8c6;
+  --pf-accent: #4bb6ff;
+  --pf-accent-soft: rgba(75, 182, 255, 0.12);
+  --pf-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+
+  position: relative;
+  background:
+    radial-gradient(1200px 600px at 90% -40%, rgba(75, 182, 255, 0.16), transparent),
+    radial-gradient(800px 400px at -20% 120%, rgba(120, 90, 255, 0.15), transparent),
+    var(--pf-surface);
+  border-radius: 20px;
+  border: 1px solid var(--pf-border);
+  box-shadow: var(--pf-shadow);
+  padding: 20px 20px 22px;
+  color: var(--pf-text);
+  overflow: hidden;
+}
+
+/* pequeña luz en el borde superior */
+.pf-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Header                                                                    */
+/* -------------------------------------------------------------------------- */
+
+.pf-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.pf-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  font-size: 21px;
+  letter-spacing: 0.03em;
+}
+
+.pf-title svg {
+  font-size: 20px;
+  padding: 6px;
+  border-radius: 12px;
+  background: radial-gradient(circle at 20% 0, rgba(75, 182, 255, 0.55), transparent);
+  box-shadow: 0 0 0 1px rgba(75, 182, 255, 0.45);
+}
+
+.pf-subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--pf-text-muted);
+  max-width: 520px;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Tabs                                                                      */
+/* -------------------------------------------------------------------------- */
+
+.pf-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 0 0, rgba(255, 255, 255, 0.08), transparent);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom: 16px;
+}
+
+.pf-tab {
+  position: relative;
+  border: 0;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pf-text-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.12s ease, background 0.15s ease;
+}
+
+.pf-tab:hover {
+  transform: translateY(-1px);
+  color: var(--pf-text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pf-tab.pf-tab--active {
+  color: var(--pf-text);
+  background: linear-gradient(135deg, rgba(75, 182, 255, 0.3), rgba(120, 90, 255, 0.45));
+  box-shadow: 0 0 0 1px rgba(75, 182, 255, 0.6),
+              0 10px 25px rgba(15, 23, 42, 0.9);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Alertas                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.pf-alert {
+  padding: 10px 12px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pf-alert--error {
+  background: rgba(255, 93, 93, 0.12);
+  border-color: rgba(255, 93, 93, 0.45);
+  color: #ffe0e0;
+}
+
+.pf-alert--ok {
+  background: rgba(65, 199, 134, 0.12);
+  border-color: rgba(65, 199, 134, 0.45);
+  color: #d5ffe9;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Form Grid                                                                 */
+/* -------------------------------------------------------------------------- */
+
+.pf-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  gap: 14px 16px;
+}
+
+@media (max-width: 860px) {
+  .pf-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pf-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pf-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pf-text-muted);
+  font-weight: 700;
+}
+
+.pf-label.required::after {
+  content: " *";
+  color: #ffb3b3;
+}
+
+/* Inputs */
+
+.pf-input {
+  background: radial-gradient(circle at 0 0, rgba(75, 182, 255, 0.12), transparent),
+              var(--pf-surface-strong);
+  color: var(--pf-text);
+  border-radius: 12px;
+  padding: 9px 12px;
+  border: 1px solid rgba(139, 162, 222, 0.4);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease,
+    transform 0.08s ease;
+}
+
+.pf-input::placeholder {
+  color: #7e8cb0;
+}
+
+.pf-input:focus {
+  border-color: rgba(75, 182, 255, 0.7);
+  box-shadow: 0 0 0 1px rgba(75, 182, 255, 0.6),
+    0 0 0 4px rgba(75, 182, 255, 0.18);
+  background: var(--pf-surface-soft);
+  transform: translateY(-1px);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Botones                                                                   */
+/* -------------------------------------------------------------------------- */
+
+.pf-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.pf-actions--right {
+  justify-content: flex-end;
+}
+
+.pf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--pf-text);
+  transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.pf-btn svg {
+  font-size: 14px;
+}
+
+.pf-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+}
+
+.pf-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pf-btn--primary {
+  background: linear-gradient(135deg, #2a3356, #1d2746);
+  border-color: rgba(75, 182, 255, 0.55);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.75);
+}
+
+.pf-btn--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #3a4a80, #24305c);
+}
+
+.pf-btn--ghost {
+  background: transparent;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  HCE (subida de PDF)                                                       */
+/* -------------------------------------------------------------------------- */
+
+.pf-hce-pane {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.2fr) minmax(260px, 1fr);
+  gap: 18px;
+}
+
+@media (max-width: 980px) {
+  .pf-hce-pane {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pf-upload-area {
+  border-radius: 16px;
+  padding: 18px 16px;
+  border: 1px dashed rgba(157, 181, 235, 0.6);
+  background: radial-gradient(circle at 0 0, rgba(75, 182, 255, 0.18), transparent),
+              rgba(6, 12, 30, 0.95);
+}
+
+.pf-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.pf-upload-icon {
+  font-size: 28px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(75, 182, 255, 0.18);
+  box-shadow: 0 0 0 1px rgba(75, 182, 255, 0.4);
+}
+
+.pf-upload-label span {
+  font-size: 13px;
+  color: var(--pf-text-muted);
+}
+
+.pf-upload-file {
+  margin-top: 10px;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(12, 21, 49, 0.9);
+  border: 1px solid rgba(157, 181, 235, 0.5);
+}
+
+.pf-upload-actions {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Preview HCE                                                               */
+/* -------------------------------------------------------------------------- */
+
+.pf-preview {
+  border-radius: 16px;
+  padding: 14px 14px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: radial-gradient(circle at 0 0, rgba(75, 182, 255, 0.14), transparent),
+              rgba(5, 11, 26, 0.96);
+}
+
+.pf-preview__title {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--pf-text-muted);
+  margin-bottom: 10px;
+}
+
+/* línea clave-valor */
+
+.pf-kv {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 4px 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+}
+
+.pf-kv:last-child {
+  border-bottom: none;
+}
+
+.pf-kv .k {
+  color: var(--pf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+}
+
+.pf-kv .v {
+  color: var(--pf-text);
+}
+
+/* Chips pequeños (no obligatorio pero útil) */
+
+.pf-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--pf-accent-soft);
+  border: 1px solid rgba(75, 182, 255, 0.6);
+  color: #e3f3ff;
+  font-size: 11px;
+  font-weight: 600;
+}

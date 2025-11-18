@@ -1,0 +1,157 @@
+/* ==========================================================================
+   KPI Cards
+   ========================================================================== */
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+/* Card base */
+
+.kpi-card {
+  position: relative;
+  border-radius: 18px;
+  padding: 14px 14px 10px;
+  background:
+    radial-gradient(600px 400px at 90% -40%, rgba(74, 140, 255, 0.22), transparent 70%),
+    var(--bg-elev);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Variantes de color */
+
+.kpi-primary::before,
+.kpi-warning::before,
+.kpi-success::before,
+.kpi-neutral::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 0 0, rgba(255,255,255,0.09), transparent 55%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.kpi-primary {
+  border-color: rgba(74, 140, 255, 0.75);
+}
+
+.kpi-warning {
+  border-color: rgba(255, 200, 60, 0.7);
+  background:
+    radial-gradient(600px 400px at 90% -40%, rgba(255, 200, 60, 0.22), transparent 70%),
+    var(--bg-elev);
+}
+
+.kpi-success {
+  border-color: rgba(25, 194, 127, 0.7);
+  background:
+    radial-gradient(600px 400px at 90% -40%, rgba(25, 194, 127, 0.24), transparent 70%),
+    var(--bg-elev);
+}
+
+.kpi-neutral {
+  border-color: rgba(160, 170, 190, 0.7);
+}
+
+/* Header */
+
+.kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.kpi-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.kpi-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 14, 40, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #eaf3ff;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.6);
+}
+
+.kpi-icon svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* Valor */
+
+.kpi-value-row {
+  margin-top: 2px;
+}
+
+.kpi-value {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  color: var(--text-1);
+}
+
+/* Footer */
+
+.kpi-footer {
+  margin-top: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
+.kpi-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.kpi-trend {
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.kpi-trend-icon {
+  font-weight: 700;
+}
+
+/* Colores por tendencia */
+
+.kpi-trend-up {
+  color: #b9f3d3;
+  border-color: rgba(25, 194, 127, 0.65);
+  background: rgba(25, 194, 127, 0.18);
+}
+
+.kpi-trend-down {
+  color: #ffd2d2;
+  border-color: rgba(255, 120, 120, 0.65);
+  background: rgba(255, 120, 120, 0.18);
+}
+
+.kpi-trend-flat {
+  color: #d2ddf2;
+}
