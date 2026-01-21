@@ -1,7 +1,20 @@
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
-import { FaTachometerAlt, FaUsers, FaFileMedical, FaSignOutAlt, FaHospitalUser, FaPalette } from "react-icons/fa";
+// src/components/layout/Sidebar.tsx
+
+import React, { useEffect, useMemo } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import {
+  FaTachometerAlt,
+  FaUsers,
+  FaFileMedical,
+  FaHospitalUser,
+  FaCloudDownloadAlt,
+  FaChartBar,
+  FaHeartbeat,
+  FaDollarSign,
+} from "react-icons/fa";
 import { useAuth } from "@/auth/AuthContext";
-import { useMemo } from "react";
+
+const SIDEBAR_BUILD_ID = "2026-01-12_menu_reorganized";
 
 type Props = {
   open: boolean;
@@ -9,9 +22,12 @@ type Props = {
 };
 
 export default function Sidebar({ open, onClose }: Props) {
-  const { logout, user } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
   const { pathname } = useLocation();
+
+  useEffect(() => {
+    console.log("[Sidebar] build:", SIDEBAR_BUILD_ID);
+  }, []);
 
   const sections = useMemo(
     () => [
@@ -22,40 +38,60 @@ export default function Sidebar({ open, onClose }: Props) {
       {
         title: "Pacientes",
         items: [
-          { to: "/patients", icon: <FaUsers />, label: "Listado" },
+          { to: "/patients", icon: <FaUsers />, label: "Pacientes" },
           { to: "/patients/new", icon: <FaHospitalUser />, label: "Nuevo" },
+          { to: "/ainstein", icon: <FaCloudDownloadAlt />, label: "WS HCE" },
         ],
-      },
-      {
-        title: "Configuración",
-        items: [{ to: "/settings/branding", icon: <FaPalette />, label: "Branding" }],
       },
       ...(user?.role === "admin"
         ? [
-            {
-              title: "Administración",
-              items: [
-                { to: "/admin/users", icon: <FaFileMedical />, label: "Usuarios" },
-                
-              ],
-            },
-          ]
+          {
+            title: "Administración",
+            items: [
+              {
+                to: "/admin/users",
+                icon: <FaFileMedical />,
+                label: "Usuarios",
+              },
+              {
+                to: "/admin/feedback",
+                icon: <FaChartBar />,
+                label: "Feedback IA",
+              },
+              {
+                to: "/admin/costs",
+                icon: <FaDollarSign />,
+                label: "Costos IA",
+              },
+              {
+                to: "/admin/health",
+                icon: <FaHeartbeat />,
+                label: "Estado Sistema",
+              },
+            ],
+          },
+        ]
         : []),
     ],
     [user]
   );
 
   return (
-    <aside className={`sb ${open ? "sb--open" : ""}`}>
-      <div className="sb__brand">EPC Suite</div>
+    <aside className={`sb ${open ? "sb--open" : ""}`} data-build-id={SIDEBAR_BUILD_ID}>
+      <div className="sb__brand" title={`Sidebar build: ${SIDEBAR_BUILD_ID}`}>
+        EPC Builder
+      </div>
+
       <nav className="sb__nav">
         {sections.map((sec) => (
           <div key={sec.title} className="sb__section">
             <div className="sb__section__title">{sec.title}</div>
+
             {sec.items.map((it) => (
               <NavLink
                 key={it.to}
                 to={it.to}
+                end={it.to === "/"}
                 onClick={onClose}
                 className={({ isActive }) =>
                   "sb__item " + (isActive || pathname === it.to ? "sb__item--active" : "")
@@ -68,22 +104,6 @@ export default function Sidebar({ open, onClose }: Props) {
           </div>
         ))}
       </nav>
-
-      <div className="sb__footer">
-        <div className="sb__user">
-          <div className="sb__user__role">{(user?.role || "viewer").toUpperCase()}</div>
-          <div className="sb__user__name">{user?.username}</div>
-        </div>
-        <button
-          className="sb__logout"
-          onClick={() => {
-            logout();
-            navigate("/login", { replace: true });
-          }}
-        >
-          <FaSignOutAlt /> <span>Salir</span>
-        </button>
-      </div>
     </aside>
   );
 }

@@ -1,9 +1,28 @@
+/* src/pages/Patients/patients-list.css */
+
 /* -------------------------------------------------------------------------- */
 /*  Patients List – Layout general                                            */
 /* -------------------------------------------------------------------------- */
 
 .patients-page {
-  color: #f5f6ff;
+  color: #1e293b;
+
+  /* ✅ FIX CRÍTICO:
+     Si tu layout general es flex (sidebar + content),
+     el content (este page) por defecto tiene min-width:auto y NO se achica.
+     Eso causa “corte” al reducir el ancho.
+  */
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+
+  /* ✅ evita que el page empuje el layout por sombras/paddings */
+  overflow-x: hidden;
+}
+
+/* ✅ mejora: evitar overflow horizontal por sombras / paddings */
+.patients-page * {
+  box-sizing: border-box;
 }
 
 .patients-page__header {
@@ -12,6 +31,12 @@
   align-items: flex-end;
   gap: 16px;
   margin-bottom: 18px;
+
+  /* ✅ permite wrap cuando achicás */
+  flex-wrap: wrap;
+
+  /* ✅ no empujar el layout */
+  min-width: 0;
 }
 
 .patients-page__header h1 {
@@ -26,14 +51,17 @@
 .subtitle {
   margin-top: 4px;
   font-size: 13px;
-  color: #98a5c4;
+  color: #64748b;
 }
 
-/* Botones de cabecera (reutiliza el estilo de pf-btn para coherencia) */
+/* -------------------------------------------------------------------------- */
+/*  Botones de cabecera                                                       */
+/* -------------------------------------------------------------------------- */
 
 .header-actions {
   display: flex;
   gap: 10px;
+  min-width: 0;
 }
 
 .btn {
@@ -43,19 +71,29 @@
   gap: 8px;
   padding: 8px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.35);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 650;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.04);
-  color: #f5f6ff;
-  transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease;
+  background: #ffffff;
+  color: #1e293b;
+  transition:
+    background 0.15s ease,
+    transform 0.08s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(2, 132, 199, 0.12);
   transform: translateY(-1px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+  border-color: rgba(2, 132, 199, 0.35);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .btn:disabled {
@@ -63,14 +101,23 @@
   cursor: not-allowed;
 }
 
+.btn:focus-visible,
+.row-btn:focus-visible,
+.hce-tab:focus-visible,
+.hce-mini-btn:focus-visible,
+.hce-modal__close:focus-visible {
+  outline: 2px solid rgba(2, 132, 199, 0.65);
+  outline-offset: 2px;
+}
+
 .btn--primary {
-  background: linear-gradient(135deg, #2a3356, #1d2746);
-  border-color: rgba(75, 182, 255, 0.6);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  border-color: rgba(2, 132, 199, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .btn--primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #3a4a80, #252f59);
+  background: linear-gradient(135deg, #0369a1, #075985);
 }
 
 .btn--ghost {
@@ -87,33 +134,70 @@
   align-items: center;
   gap: 12px;
   margin-bottom: 14px;
+
+  /* ✅ en layouts flex, evita “corte” */
+  min-width: 0;
 }
 
 .filter-group {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
+  padding: 7px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(151, 167, 207, 0.35);
-  background: rgba(7, 14, 30, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
 .filter-icon {
   font-size: 14px;
-  color: #8ea0cf;
+  color: #64748b;
 }
 
 .filter-group select {
   background: transparent;
   border: 0;
   outline: 0;
-  color: #d9e4ff;
+  color: #1e293b;
   font-size: 13px;
+  appearance: none;
 }
 
 .filter-group select option {
   color: #0f172a;
+}
+
+/* Ordenamiento */
+.sort-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sort-direction-btn {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(2, 132, 199, 0.4);
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.1), rgba(3, 105, 161, 0.1));
+  color: #0284c7;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.sort-direction-btn:hover {
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.2), rgba(3, 105, 161, 0.2));
+  border-color: rgba(2, 132, 199, 0.6);
+  transform: translateY(-1px);
+}
+
+.sort-direction-btn:active {
+  transform: translateY(0);
 }
 
 /* búsqueda */
@@ -122,18 +206,25 @@
   flex: 1;
   min-width: 260px;
   display: flex;
+
+  /* ✅ evita empuje en flex */
+  min-width: 0;
 }
 
 .search-group input {
   width: 100%;
-  padding: 8px 11px;
+  padding: 9px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(151, 167, 207, 0.35);
-  background: rgba(6, 11, 25, 0.95);
-  color: #e9f0ff;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  color: #1e293b;
   font-size: 13px;
   outline: none;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 .search-group input::placeholder {
@@ -141,10 +232,12 @@
 }
 
 .search-group input:focus {
-  border-color: rgba(75, 182, 255, 0.7);
-  box-shadow: 0 0 0 1px rgba(75, 182, 255, 0.6),
-    0 0 0 3px rgba(75, 182, 255, 0.18);
-  background: rgba(10, 20, 42, 0.95);
+  border-color: rgba(2, 132, 199, 0.6);
+  box-shadow:
+    0 0 0 1px rgba(2, 132, 199, 0.5),
+    0 0 0 3px rgba(2, 132, 199, 0.12),
+    0 4px 10px rgba(0, 0, 0, 0.06);
+  background: #f8fafc;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -153,12 +246,17 @@
 
 .patients-card {
   border-radius: 18px;
-  border: 1px solid rgba(136, 162, 220, 0.22);
+  border: 1px solid rgba(148, 163, 184, 0.3);
   background:
-    radial-gradient(900px 450px at 90% -30%, rgba(75, 182, 255, 0.13), transparent),
-    rgba(7, 11, 26, 0.96);
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
-  padding: 10px 10px 12px;
+    #ffffff,
+    #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 12px 12px 12px;
+
+  /* ✅ FIX CRÍTICO: permite encogerse en un contenedor flex */
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
 }
 
 .patients-card__header {
@@ -166,23 +264,26 @@
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  padding: 4px 4px 8px;
+  padding: 6px 6px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+
+  min-width: 0;
 }
 
 .patients-card__header .badge {
-  padding: 4px 10px;
+  padding: 5px 11px;
   border-radius: 999px;
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #d3dcff;
+  background: rgba(148, 163, 184, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #475569;
 }
 
 .patients-card__header .count {
   font-size: 12px;
-  color: #9fb0d5;
+  color: #64748b;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -190,40 +291,171 @@
 /* -------------------------------------------------------------------------- */
 
 .patients-table-wrapper {
-  margin-top: 4px;
+  margin-top: 10px;
   border-radius: 14px;
   overflow: hidden;
-  border: 1px solid rgba(121, 143, 205, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+
+  /* ✅ clave: scroll horizontal interno */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  /* ✅ FIX CRÍTICO para que NO se corte en layouts flex */
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+
+  display: block;
 }
 
+.patients-table-wrapper::-webkit-scrollbar {
+  height: 10px;
+}
+
+.patients-table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+}
+
+.patients-table-wrapper::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+
+/* TABLA: fixed evita que se “monte” el contenido */
 .patients-table {
   width: 100%;
+  min-width: 1120px;
+  /* ✅ asegura layout pro, si no entra -> scroll */
   border-collapse: separate;
   border-spacing: 0;
-  background: rgba(5, 10, 26, 0.98);
+  background: #ffffff;
+  table-layout: fixed;
+
+  /* ✅ evita que empuje el contenedor en algunos layouts */
+  max-width: 100%;
 }
 
 .patients-table th,
 .patients-table td {
-  padding: 10px 14px;
+  padding: 11px 14px;
   font-size: 13px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  vertical-align: middle;
 }
 
-.patients-table th {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
-  color: #9cadcd;
-  font-weight: 600;
+/* truncado prolijo para evitar montajes */
+.patients-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* zebra */
+.patients-table tbody tr:nth-child(odd) td {
+  background: rgba(255, 255, 255, 0.00);
+}
+
+.patients-table tbody tr:nth-child(even) td {
+  background: rgba(248, 250, 252, 1);
+}
+
+/* hover suave */
+.patients-table tbody tr:hover td {
+  background: rgba(2, 132, 199, 0.08);
+}
+
+/* Cabecera sticky para “pro” */
+.patients-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(180deg,
+      #f8fafc,
+      #f8fafc);
+  color: #64748b;
+  font-weight: 700;
   text-align: left;
   white-space: nowrap;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.patients-table th.th-actions {
+  text-align: right;
 }
 
 .patients-table tr:last-child td {
   border-bottom: 0;
 }
 
-.patients-table tbody tr:hover {
-  background: rgba(40, 56, 105, 0.6);
+/* columnas (ajustá si querés) */
+.col-apellido {
+  width: 150px;
+}
+
+.col-nombre {
+  width: 150px;
+}
+
+.col-dni {
+  width: 110px;
+}
+
+.col-hce {
+  width: 120px;
+}
+
+.col-sector {
+  width: 120px;
+}
+
+.col-hab {
+  width: 80px;
+}
+
+.col-cama {
+  width: 80px;
+}
+
+.col-obra {
+  width: 160px;
+}
+
+.col-benef {
+  width: 120px;
+}
+
+.col-estado {
+  width: 150px;
+}
+
+.col-actions {
+  width: 210px;
+}
+
+/* jerarquía en celdas de paciente */
+.patient-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.patient-main {
+  font-weight: 750;
+  color: #0f172a;
+  letter-spacing: 0.01em;
+}
+
+.patient-sub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+/* estado centrado visualmente */
+.state-cell {
+  white-space: nowrap;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -234,11 +466,12 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 9px;
+  padding: 4px 10px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   border: 1px solid transparent;
+  line-height: 1;
 }
 
 .badge svg {
@@ -246,39 +479,285 @@
 }
 
 .badge--yellow {
-  background: rgba(255, 196, 86, 0.16);
-  color: #ffe0a9;
-  border-color: rgba(255, 196, 86, 0.42);
+  background: rgba(217, 119, 6, 0.12);
+  color: #d97706;
+  border-color: rgba(217, 119, 6, 0.4);
 }
 
 .badge--orange {
-  background: rgba(253, 160, 90, 0.16);
-  color: #ffddbd;
-  border-color: rgba(253, 160, 90, 0.42);
+  background: rgba(234, 88, 12, 0.12);
+  color: #ea580c;
+  border-color: rgba(234, 88, 12, 0.4);
 }
 
 .badge--green {
-  background: rgba(83, 214, 149, 0.16);
-  color: #c3f7dd;
-  border-color: rgba(83, 214, 149, 0.45);
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
+  border-color: rgba(22, 163, 74, 0.45);
 }
 
 .badge--blue {
-  background: rgba(140, 160, 210, 0.16);
-  color: #e2e7ff;
-  border-color: rgba(140, 160, 210, 0.45);
+  background: rgba(79, 70, 229, 0.12);
+  color: #4f46e5;
+  border-color: rgba(79, 70, 229, 0.45);
 }
 
 /* -------------------------------------------------------------------------- */
 /*  Acciones en la fila                                                       */
 /* -------------------------------------------------------------------------- */
 
-.patients-table td > button {
-  font-size: 12px;
+.patients-table td.actions-cell {
+  text-align: right;
+  white-space: nowrap;
+  overflow: visible;
 }
 
-.patients-table td > button svg {
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Botones de acciones por fila (look tipo pastilla) */
+
+.row-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 750;
+  border: 1px solid rgba(148, 163, 184, 0.40);
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.08s ease,
+    opacity 0.15s ease;
+}
+
+.row-btn svg {
+  font-size: 11px;
+}
+
+.row-btn:hover:not(:disabled) {
+  background: rgba(2, 132, 199, 0.1);
+  border-color: rgba(96, 165, 250, 0.80);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.row-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.row-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* principal: generar / ver EPC (verde) */
+
+.row-btn--primary {
+  background: linear-gradient(135deg, rgba(22, 163, 74, 0.95), rgba(34, 197, 94, 0.95));
+  border-color: rgba(74, 222, 128, 0.65);
+  color: #ffffff;
+}
+
+.row-btn--primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(21, 128, 61, 0.95), rgba(22, 163, 74, 0.95));
+  box-shadow: 0 10px 24px rgba(22, 163, 74, 0.45);
+}
+
+/* secundario: editar (azul) */
+
+.row-btn--secondary {
+  background: rgba(37, 99, 235, 0.12);
+  border-color: rgba(59, 130, 246, 0.70);
+  color: #0284c7;
+  padding: 6px 9px;
+}
+
+.row-btn--secondary:hover:not(:disabled) {
+  background: rgba(37, 99, 235, 0.22);
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.45);
+}
+
+/* peligro: eliminar (rojo) */
+
+.row-btn--danger {
+  background: rgba(220, 38, 38, 0.10);
+  border-color: rgba(248, 113, 113, 0.75);
+  color: #dc2626;
+  padding: 6px 9px;
+}
+
+.row-btn--danger:hover:not(:disabled) {
+  background: rgba(220, 38, 38, 0.18);
+  box-shadow: 0 10px 24px rgba(220, 38, 38, 0.45);
+}
+
+/* -------------------------------------------------------------------------- */
+/*  NUEVOS Botones de acciones profesionales                                   */
+/* -------------------------------------------------------------------------- */
+
+/* Contenedor de acciones - alineación limpia */
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Botón principal EPC - prominente y claro */
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 8px;
   font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.1s ease;
+}
+
+.action-btn svg {
+  font-size: 13px;
+}
+
+.action-btn span {
+  white-space: nowrap;
+}
+
+.action-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Botón EPC verde - acción principal */
+.action-btn--epc {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  border-color: rgba(74, 222, 128, 0.7);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+}
+
+.action-btn--epc:hover:not(:disabled) {
+  background: linear-gradient(135deg, #15803d, #16a34a);
+  box-shadow: 0 6px 18px rgba(22, 163, 74, 0.5);
+  transform: translateY(-1px);
+}
+
+.action-btn--epc:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+.action-btn--epc.is-loading {
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  border-color: rgba(94, 234, 212, 0.7);
+}
+
+/* Grupo de iconos secundarios */
+.action-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+/* Botones de icono individual */
+.action-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.action-icon-btn svg {
+  font-size: 14px;
+}
+
+.action-icon-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Ver HCE - azul */
+.action-icon-btn--view {
+  color: #60a5fa;
+}
+
+.action-icon-btn--view:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
+  transform: scale(1.08);
+}
+
+/* Editar - amarillo/naranja */
+.action-icon-btn--edit {
+  color: #fbbf24;
+}
+
+.action-icon-btn--edit:hover:not(:disabled) {
+  background: rgba(251, 191, 36, 0.18);
+  color: #fcd34d;
+  transform: scale(1.08);
+}
+
+/* Eliminar - rojo */
+.action-icon-btn--delete {
+  color: #f87171;
+}
+
+.action-icon-btn--delete:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.18);
+  color: #fca5a5;
+  transform: scale(1.08);
+}
+
+/* Tooltip mejorado para los iconos */
+.action-icon-btn[title] {
+  position: relative;
+}
+
+.action-icon-btn:focus-visible {
+  outline: 2px solid rgba(2, 132, 199, 0.65);
+  outline-offset: 2px;
+}
+
+.action-btn:focus-visible {
+  outline: 2px solid rgba(2, 132, 199, 0.65);
+  outline-offset: 2px;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -289,13 +768,26 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 
 .patients-pagination .btn {
-  padding: 6px 12px;
+  padding: 7px 13px;
   border-radius: 999px;
   font-size: 12px;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Error box                                                                  */
+/* -------------------------------------------------------------------------- */
+
+.patients-error {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(220, 38, 38, 0.10);
+  color: #dc2626;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -305,17 +797,19 @@
 .epc-thinking-overlay {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at 20% 0, rgba(75, 182, 255, 0.22), transparent),
-              rgba(3, 6, 18, 0.88);
+  background:
+    radial-gradient(circle at 20% 0, rgba(75, 182, 255, 0.22), transparent),
+    rgba(3, 6, 18, 0.88);
   backdrop-filter: blur(9px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  padding: 18px;
 }
 
 .epc-thinking-card {
-  width: min(440px, 90vw);
+  width: min(460px, 92vw);
   padding: 22px 20px 18px;
   border-radius: 18px;
   border: 1px solid rgba(129, 157, 255, 0.55);
@@ -331,14 +825,14 @@
 
 .epc-brain {
   position: relative;
-  width: 70px;
-  height: 70px;
+  width: 74px;
+  height: 74px;
   border-radius: 999px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: radial-gradient(circle at 30% 0, #4bb6ff, #7b5bff);
-  box-shadow: 0 0 45px rgba(75, 182, 255, 0.85);
+  box-shadow: 0 0 45px rgba(2, 132, 199, 0.65);
   overflow: hidden;
 }
 
@@ -368,12 +862,12 @@
 .epc-thinking-text {
   margin-top: 4px;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .epc-thinking-sub {
   font-size: 12px;
-  color: #a9b7de;
+  color: #64748b;
 }
 
 /* barra de progreso */
@@ -397,7 +891,850 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Animaciones                                                                */
+/*  Responsive: ajustes (desktop -> tablet)                                    */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 980px) {
+  .patients-page__header {
+    align-items: flex-start;
+  }
+
+  /* ✅ ocultamos columnas “pesadas” para tablet, mantenemos tabla + scroll */
+  .patients-table th.col-sector,
+  .patients-table td.col-sector,
+  .patients-table th.col-obra,
+  .patients-table td.col-obra,
+  .patients-table th.col-benef,
+  .patients-table td.col-benef {
+    display: none;
+  }
+
+  .patients-table {
+    min-width: 920px;
+  }
+
+  .patients-table th,
+  .patients-table td {
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+
+  .col-actions {
+    width: 200px;
+  }
+
+  .row-actions {
+    gap: 7px;
+  }
+}
+
+@media (max-width: 720px) {
+  .patients-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .btn {
+    width: 100%;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Responsive: tabla -> cards (mobile)                                        */
+/* -------------------------------------------------------------------------- */
+
+@media (max-width: 760px) {
+  .patients-table thead {
+    display: none;
+  }
+
+  .patients-table,
+  .patients-table tbody,
+  .patients-table tr,
+  .patients-table td {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .patients-table {
+    min-width: 0;
+    table-layout: auto;
+  }
+
+  .patients-table tr {
+    border-bottom: 1px solid #f8fafc;
+  }
+
+  .patients-table td {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: initial;
+    border-bottom: 0;
+    padding: 10px 12px;
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    /* ✅ más compacto */
+    gap: 10px;
+  }
+
+  .patients-table td::before {
+    content: attr(data-label);
+    font-weight: 750;
+    color: #64748b;
+    letter-spacing: 0.02em;
+  }
+
+  .patients-table td.actions-cell {
+    display: block;
+    text-align: left;
+  }
+
+  .row-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .row-btn--primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .patients-table-wrapper {
+    overflow: hidden;
+    /* cards no necesitan scroll */
+  }
+}
+
+@media (max-width: 420px) {
+  .patients-table td {
+    grid-template-columns: 115px 1fr;
+  }
+
+  .patients-filters {
+    gap: 10px;
+  }
+
+  .search-group {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  HCE Modal - RESPONSIVE (FIX overflow + margins)                            */
+/* -------------------------------------------------------------------------- */
+
+.hce-modal__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background:
+
+    rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  overflow: auto;
+  /* ✅ permite scroll si el contenido excede alto en pantallas chicas */
+}
+
+.hce-modal {
+  width: min(1100px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background:
+
+    #ffffff;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  /* ✅ clave: evita que “se salga” */
+}
+
+.hce-modal__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.hce-modal__title {
+  min-width: 0;
+}
+
+.hce-modal__h1 {
+  font-size: 16px;
+  font-weight: 850;
+  letter-spacing: 0.03em;
+}
+
+.hce-modal__sub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70vw;
+}
+
+.hce-modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.08s ease, border-color 0.15s ease;
+}
+
+.hce-modal__close:hover {
+  background: #f8fafc;
+  border-color: rgba(2, 132, 199, 0.35);
+  transform: translateY(-1px);
+}
+
+.hce-modal__tabs {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  flex-wrap: wrap;
+}
+
+.hce-tab {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #f1f5f9;
+  color: #0284c7;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+}
+
+.hce-tab:hover:not(:disabled) {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: rgba(59, 130, 246, 0.65);
+  transform: translateY(-1px);
+}
+
+.hce-tab:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.hce-tab.is-active {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  border-color: rgba(2, 132, 199, 0.5);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+  color: #1e293b;
+}
+
+.hce-modal__body {
+  flex: 1;
+  overflow: auto;
+  /* ✅ scroll interno */
+  padding: 14px;
+}
+
+.hce-modal__footer {
+  padding: 10px 14px 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  background: #f8fafc;
+}
+
+/* Estados */
+.hce-loading,
+.hce-error,
+.hce-empty {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #f8fafc;
+  color: #0284c7;
+}
+
+.hce-error {
+  border-color: rgba(248, 113, 113, 0.45);
+  background: rgba(220, 38, 38, 0.10);
+  color: #dc2626;
+}
+
+/* Helpers */
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.hce-muted {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.hce-muted--mini {
+  font-size: 11px;
+}
+
+.hce-muted--pad {
+  margin-top: 6px;
+}
+
+.hce-strong {
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.hce-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Vista */
+.hce-vista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* KPIs responsive */
+.hce-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.hce-kpi {
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  padding: 12px 12px;
+  min-width: 0;
+}
+
+.hce-kpi__k {
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.hce-kpi__v {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e293b;
+  overflow-wrap: anywhere;
+  /* ✅ evita overflow por strings largas */
+}
+
+/* barra acciones */
+.hce-actionsbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.hce-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #f1f5f9;
+  color: #0284c7;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+}
+
+.hce-mini-btn:hover {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: rgba(59, 130, 246, 0.65);
+  transform: translateY(-1px);
+}
+
+/* Secciones */
+.hce-section {
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  padding: 12px;
+}
+
+.hce-section__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.02em;
+  margin-bottom: 10px;
+}
+
+.hce-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 10px;
+  border: 1px solid rgba(75, 182, 255, 0.25);
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+/* Accordion */
+.hce-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hce-acc-item {
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.hce-acc-head {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 0;
+  color: #0f172a;
+  cursor: pointer;
+  text-align: left;
+}
+
+.hce-acc-icon {
+  color: #64748b;
+  display: inline-flex;
+}
+
+.hce-acc-title {
+  font-weight: 900;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hce-acc-when {
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.hce-acc-body {
+  padding: 12px 12px 14px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Bloques */
+.hce-block {
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #f8fafc;
+  padding: 10px 10px;
+}
+
+.hce-block__k {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #0284c7;
+  margin-bottom: 8px;
+}
+
+.hce-block__v {
+  min-width: 0;
+}
+
+/* Pre: no romper el layout */
+.hce-pre {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  /* ✅ wrap */
+  word-break: break-word;
+  /* ✅ wrap */
+  overflow-wrap: anywhere;
+  /* ✅ wrap */
+}
+
+.hce-pre--big {
+  padding: 12px;
+  font-size: 12px;
+  max-height: 60vh;
+  overflow: auto;
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Texto agrupado por secciones (para pestaña "Texto")                        */
+/*  (se usa cuando el front arma hitos/secciones en vez de mostrar JSON crudo) */
+/* -------------------------------------------------------------------------- */
+
+.hce-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hce-texto .hce-section {
+  background: #ffffff;
+}
+
+/* contenedor tipo “timeline” */
+.hce-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* cada grupo/sección */
+.hce-tl-group {
+  border-radius: 16px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.hce-tl-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  background: #f8fafc;
+}
+
+.hce-tl-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 950;
+  color: #0f172a;
+  letter-spacing: 0.02em;
+}
+
+.hce-tl-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hce-tl-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* “chip” de cantidad / rango */
+.hce-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #f8fafc;
+  color: #0284c7;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.hce-tl-body {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* item/hito dentro del grupo */
+.hce-tl-item {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #f8fafc;
+  padding: 10px 10px;
+  min-width: 0;
+}
+
+.hce-tl-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.hce-tl-when {
+  color: #64748b;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.hce-tl-kind {
+  color: #0284c7;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #e0f2fe;
+  border: 1px solid rgba(75, 182, 255, 0.20);
+  padding: 4px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* contenido del item (texto clínico) */
+.hce-tl-content {
+  margin: 0;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: rgba(5, 10, 26, 0.92);
+  color: #1e293b;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* lista compacta dentro del item */
+.hce-tl-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 12px;
+  color: #1e293b;
+}
+
+.hce-tl-list li {
+  margin: 4px 0;
+}
+
+/* separador sutil */
+.hce-divider {
+  height: 1px;
+  background: rgba(148, 163, 184, 0.2);
+  margin: 8px 0;
+}
+
+/* Mini table para fármacos */
+.hce-table {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hce-table__head {
+  display: grid;
+  grid-template-columns: 1.6fr 0.8fr 0.7fr 0.9fr;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  padding: 0 4px;
+}
+
+.hce-table__row {
+  display: grid;
+  grid-template-columns: 1.6fr 0.8fr 0.7fr 0.9fr;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(151, 167, 207, 0.18);
+  background: #ffffff;
+  min-width: 0;
+}
+
+.hce-table__row>div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.hce-table__sub {
+  grid-column: 1 / -1;
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.hce-subsection {
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: #f8fafc;
+  padding: 10px;
+}
+
+.hce-subsection__t {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+/* Plantillas (key/values) */
+.hce-template {
+  border-radius: 14px;
+  border: 1px solid rgba(151, 167, 207, 0.18);
+  background: #ffffff;
+  padding: 10px;
+}
+
+.hce-template__t {
+  font-weight: 950;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+
+.hce-kv {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hce-kv__row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 10px;
+  padding: 8px 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.hce-kv__k {
+  font-size: 12px;
+  font-weight: 900;
+  color: #0284c7;
+}
+
+.hce-kv__v {
+  font-size: 12px;
+  color: #1e293b;
+  overflow-wrap: anywhere;
+}
+
+/* Responsive del modal */
+@media (max-width: 720px) {
+  .hce-modal__overlay {
+    padding: 12px;
+  }
+
+  .hce-modal {
+    width: 100%;
+    max-height: 92vh;
+    border-radius: 16px;
+  }
+
+  .hce-modal__sub {
+    max-width: 82vw;
+  }
+
+  .hce-kpis {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
+  .hce-acc-head {
+    grid-template-columns: 28px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .hce-acc-when {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+    justify-self: start;
+    white-space: normal;
+  }
+
+  .hce-table__head {
+    display: none;
+  }
+
+  .hce-table__row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .hce-kv__row {
+    grid-template-columns: 1fr;
+  }
+
+  /* Texto agrupado (mobile) */
+  .hce-tl-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hce-tl-meta {
+    white-space: normal;
+  }
+
+  .hce-tl-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .hce-tl-kind,
+  .hce-tl-when {
+    white-space: normal;
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Animaciones                                                               */
 /* -------------------------------------------------------------------------- */
 
 @keyframes epc-pulse {
@@ -405,10 +1742,12 @@
     transform: scale(0.9);
     box-shadow: 0 0 0 0 rgba(173, 216, 255, 0.9);
   }
+
   70% {
     transform: scale(1);
     box-shadow: 0 0 0 14px rgba(173, 216, 255, 0);
   }
+
   100% {
     transform: scale(0.9);
     box-shadow: 0 0 0 0 rgba(173, 216, 255, 0);
@@ -419,7 +1758,74 @@
   0% {
     background-position: 0% 0;
   }
+
   100% {
     background-position: 180% 0;
   }
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* FIX: evitar que estado/columnas largas "empujen" Acciones fuera del frame   */
+/* -------------------------------------------------------------------------- */
+
+/* 1) Nunca dejar que la celda de acciones "escape" del ancho de la tabla */
+.patients-table td.actions-cell {
+  overflow: hidden !important;
+  /* <-- antes estaba en visible */
+}
+
+/* 2) Estado: el badge debe poder truncar dentro de su celda */
+.state-cell {
+  max-width: 160px;
+  /* ajustá a gusto */
+  min-width: 0;
+}
+
+.state-cell .badge {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Si el texto del badge está envuelto en un span (lo más común), mejor aún */
+.state-cell .badge>span,
+.state-cell .badge .badge-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 3) Acciones: que los botones no empujen el layout; si no entran, que bajen */
+.row-actions {
+  max-width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  /* <-- clave */
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+/* Botones: permitir truncado y evitar que se estiren */
+.row-btn {
+  flex: 0 0 auto;
+  max-width: 140px;
+  /* ajustá a gusto */
+  min-width: 0;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Si el texto del botón está en un span (ideal) */
+.row-btn>span,
+.row-btn .btn-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

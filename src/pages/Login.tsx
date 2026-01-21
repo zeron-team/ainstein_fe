@@ -1,6 +1,7 @@
 // frontend/src/pages/Login.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaHeartbeat } from "react-icons/fa";
 import { useAuth } from "@/auth/AuthContext";
 import {
   FaSignInAlt,
@@ -11,6 +12,9 @@ import {
   FaCheck,
   FaInfoCircle,
 } from "react-icons/fa";
+
+// 👇 ajustá la ruta según dónde pongas el archivo
+import AInsteinLogo from "../../Isologo_AInstein.png";
 
 const STYLE_ID = "login-styles";
 
@@ -52,6 +56,22 @@ const Login: React.FC = () => {
         font-size:12px; padding:6px 10px; border-radius:999px;
         border:1px solid rgba(255,255,255,.14); color:#cfe3ff; background: rgba(255,255,255,.05);
       }
+
+      /* Logo AInstein en panel izquierdo */
+      .lg-logo-wrap {
+        margin: 26px 0 20px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+      .lg-logo {
+        max-width: 260px;
+        width: 100%;
+        height: auto;
+        display:block;
+        filter: drop-shadow(0 10px 26px rgba(0,0,0,.55));
+      }
+
       .lg-brand-footer { font-size: 12px; color:#91a6c8; opacity:.9; }
 
       .lg-form { padding: 28px; display:grid; gap:14px; }
@@ -98,7 +118,7 @@ const Login: React.FC = () => {
 
   const lastUser = useMemo(() => localStorage.getItem("last_username") ?? "", []);
   const [username, setUsername] = useState<string>(lastUser || "admin");
-  const [password, setPassword] = useState<string>("TuPassFuerte123!");
+  const [password, setPassword] = useState<string>("Admin123!");
   const [remember, setRemember] = useState<boolean>(!!lastUser);
   const [showPw, setShowPw] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -130,22 +150,36 @@ const Login: React.FC = () => {
         {/* Panel de marca */}
         <div className="lg-brand">
           <div>
-            <h1>EPC Suite</h1>
-            <p>Plataforma clínica moderna para gestionar Epicrisis y pacientes.</p>
-            <div className="lg-badges">
-              <span className="lg-badge">FastAPI</span>
-              <span className="lg-badge">React + TS</span>
-              <span className="lg-badge">JWT</span>
-              <span className="lg-badge">Hosp. ready</span>
+            <h1>EPC Builder</h1>
+            <p>
+              Plataforma para gestionar Epicrisis a traves de IA.
+            </p>
+
+            {/* Logo entre el título y el footer */}
+            <div className="lg-logo-wrap">
+              <img
+                src={AInsteinLogo}
+                alt="AInstein"
+                className="lg-logo"
+              />
             </div>
           </div>
-          <div className="lg-brand-footer">© {new Date().getFullYear()} EPC Suite — Todos los derechos reservados</div>
+
+          <div className="lg-brand-footer">
+            EPC Builder by AInstein © {new Date().getFullYear()} · powered by ZRN{" "}
+            <FaHeartbeat
+              style={{ marginRight: 8, verticalAlign: "middle" }}
+            />
+            Health
+          </div>
         </div>
 
         {/* Formulario */}
         <form className="lg-form" onSubmit={onSubmit}>
           <div className="lg-title">Ingresar</div>
-          <div className="lg-sub">Usá tus credenciales para acceder al panel.</div>
+          <div className="lg-sub">
+            Usá tus credenciales para acceder al panel.
+          </div>
 
           {(localError || error) && (
             <div className="lg-toast err" role="alert">
@@ -156,7 +190,9 @@ const Login: React.FC = () => {
 
           {/* Usuario */}
           <div className="lg-field">
-            <label className="lg-label" htmlFor="lg-username">Usuario</label>
+            <label className="lg-label" htmlFor="lg-username">
+              Usuario
+            </label>
             <div className="lg-input-wrap">
               <FaUser className="lg-ico-l" />
               <input
@@ -166,14 +202,20 @@ const Login: React.FC = () => {
                 autoComplete="username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                onKeyUp={(e) => setCaps(e.getModifierState && e.getModifierState("CapsLock"))}
+                onKeyUp={(e) =>
+                  setCaps(
+                    e.getModifierState && e.getModifierState("CapsLock")
+                  )
+                }
               />
             </div>
           </div>
 
           {/* Clave */}
           <div className="lg-field">
-            <label className="lg-label" htmlFor="lg-password">Clave</label>
+            <label className="lg-label" htmlFor="lg-password">
+              Clave
+            </label>
             <div className="lg-input-wrap">
               <FaLock className="lg-ico-l" />
               <input
@@ -184,7 +226,11 @@ const Login: React.FC = () => {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                onKeyUp={(e) => setCaps(e.getModifierState && e.getModifierState("CapsLock"))}
+                onKeyUp={(e) =>
+                  setCaps(
+                    e.getModifierState && e.getModifierState("CapsLock")
+                  )
+                }
               />
               <button
                 type="button"
@@ -219,7 +265,11 @@ const Login: React.FC = () => {
               Recordar usuario
             </label>
             {/* Enlace opcional */}
-            <a className="lg-link" href="#" onClick={(e) => e.preventDefault()}>
+            <a
+              className="lg-link"
+              href="#"
+              onClick={(e) => e.preventDefault()}
+            >
               ¿Olvidaste tu clave?
             </a>
           </div>
@@ -233,7 +283,7 @@ const Login: React.FC = () => {
           {!localError && !error && (
             <div className="lg-toast ok" style={{ marginTop: 6 }}>
               <FaCheck />
-              <div>Tip: podés probar con <b>admin / TuPassFuerte123!</b></div>
+              {/*<div>Tip: podés probar con <b>admin / Admin123!</b></div>*/}
             </div>
           )}
         </form>

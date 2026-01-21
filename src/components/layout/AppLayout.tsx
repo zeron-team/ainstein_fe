@@ -27,11 +27,11 @@ const AppLayout: React.FC = () => {
         <div className="content-container">
           {/* Aquí se inyectan las páginas (Pacientes, EPC, etc.) */}
           <Outlet />
-
-          {/* Footer pegado abajo del contenedor */}
-          <Footer />
         </div>
       </main>
+
+      {/* Footer fijo abajo */}
+      <Footer />
     </div>
   );
 };

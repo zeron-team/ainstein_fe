@@ -1,15 +1,19 @@
-import { FaHeartbeat } from "react-icons/fa";
+// src/components/layout/Footer.tsx
+import { FaHeartbeat, FaGithub } from "react-icons/fa";
 
 const Footer: React.FC = () => {
   const year = new Date().getFullYear();
 
   return (
     <footer className="app-footer">
-      <span>
-        <span>
-           Ainstein &amp; IA — {year} · powered by ZRN <FaHeartbeat style={{ marginRight: 8, verticalAlign: "middle" }} />Health
-        </span>
+      <span className="footer-brand">
+        <FaHeartbeat className="footer-icon" />
+        <strong>EPC Builder</strong> by AInstein
       </span>
+      <span className="footer-divider">•</span>
+      <span className="footer-copy">© {year} ZRN Health</span>
+      <span className="footer-divider">•</span>
+      <span className="footer-version">v1.2.0</span>
     </footer>
   );
 };

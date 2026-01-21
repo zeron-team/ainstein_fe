@@ -1,19 +1,31 @@
-import React from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
-import { useAuth } from '@/auth/AuthContext'
+// src/auth/PrivateRoute.tsx
+import React from "react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "@/auth/AuthContext";
 
-type Props = { roles?: Array<'admin' | 'medico' | 'viewer'> }
+type Props = { roles?: Array<"admin" | "medico" | "viewer"> };
 
 const PrivateRoute: React.FC<Props> = ({ roles }) => {
-  const { token, user, loading } = useAuth()
+  const location = useLocation();
+  const { token, user, loading } = useAuth();
 
   // 👉 clave: NO decidir mientras rehidratás el token
-  if (loading) return null
+  if (loading) return null;
 
-  if (!token) return <Navigate to="/login" replace />
-  if (roles && user && !roles.includes(user.role)) return <Navigate to="/" replace />
+  // Si no hay token, mandamos a login y guardamos la ruta original
+  if (!token) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
 
-  return <Outlet />
-}
+  // Si token existe pero user todavía no (por cualquier causa), no rompas navegación
+  if (!user) return null;
 
-export default PrivateRoute
+  // Control de roles
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+};
+
+export default PrivateRoute;

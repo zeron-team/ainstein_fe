@@ -1,0 +1,181 @@
+/* src/components/EpcHistoryTimeline.css */
+
+.epc-timeline-wrapper {
+  background: rgba(10, 16, 35, 0.9);
+  border-radius: 16px;
+  padding: 18px 22px 20px;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(97, 115, 169, 0.35);
+}
+
+.epc-timeline-header {
+  margin-bottom: 12px;
+}
+
+.epc-timeline-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary, #f4f6ff);
+}
+
+.epc-timeline-subtitle {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-muted, #7f8aa9);
+}
+
+/* Scroll horizontal suave para muchos eventos */
+.epc-timeline-scroll {
+  margin-top: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.epc-timeline-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.epc-timeline-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.epc-timeline-scroll::-webkit-scrollbar-thumb {
+  background: rgba(103, 132, 197, 0.6);
+  border-radius: 999px;
+}
+
+.epc-timeline-track {
+  display: flex;
+  align-items: flex-start;
+  gap: 32px;
+  padding: 4px 4px 8px;
+  min-width: max-content;
+}
+
+/* Cada “punto” de la línea de tiempo */
+.epc-timeline-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 190px;
+}
+
+/* Línea + círculo */
+.epc-timeline-line {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.epc-timeline-line-left,
+.epc-timeline-line-right {
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    rgba(75, 182, 255, 0.1),
+    rgba(75, 182, 255, 0.8)
+  );
+}
+
+.epc-timeline-line-right {
+  background: linear-gradient(
+    to right,
+    rgba(75, 182, 255, 0.8),
+    rgba(75, 182, 255, 0.1)
+  );
+}
+
+.epc-timeline-dot-outer {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-primary, #4bb6ff);
+  background: radial-gradient(
+    circle at center,
+    rgba(75, 182, 255, 0.25),
+    transparent 65%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 4px;
+}
+
+.epc-timeline-dot-inner {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-primary, #4bb6ff);
+}
+
+/* Tarjeta del evento */
+.epc-timeline-card {
+  background: rgba(15, 26, 46, 0.96);
+  border-radius: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(103, 132, 197, 0.45);
+  backdrop-filter: blur(10px);
+  min-width: 180px;
+}
+
+.epc-timeline-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  transition: all 0.18s ease-out;
+}
+
+.epc-timeline-date {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-secondary, #a3aec9);
+  margin-bottom: 6px;
+}
+
+.epc-timeline-action {
+  font-size: 0.86rem;
+  font-weight: 500;
+  color: var(--text-primary, #f4f6ff);
+  margin-bottom: 4px;
+}
+
+.epc-timeline-by {
+  font-size: 0.78rem;
+  color: var(--text-muted, #7f8aa9);
+}
+
+.epc-timeline-by-name {
+  font-weight: 500;
+  color: var(--accent-primary, #4bb6ff);
+}
+
+/* Estado vacío */
+.epc-timeline-empty {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(10, 16, 35, 0.9);
+  border: 1px dashed rgba(97, 115, 169, 0.5);
+  font-size: 0.86rem;
+  color: var(--text-muted, #7f8aa9);
+}
+
+/* Responsivo: en pantallas muy chicas, que se vea más compacto */
+@media (max-width: 640px) {
+  .epc-timeline-track {
+    gap: 20px;
+  }
+
+  .epc-timeline-item {
+    min-width: 170px;
+  }
+
+  .epc-timeline-card {
+    padding: 9px 10px;
+  }
+}

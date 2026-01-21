@@ -1,0 +1,253 @@
+/* src/pages/Users/UsersCRUD.css - LIGHT THEME */
+
+.usr-page {
+  padding: 20px;
+  color: #1e293b;
+}
+
+.usr-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1100px) {
+  .usr-grid {
+    grid-template-columns: 1.05fr 1.6fr;
+  }
+}
+
+.card {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  margin-bottom: 6px;
+  color: #1e293b;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.usr-form {
+  display: grid;
+  gap: 12px;
+}
+
+.usr-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.usr-label {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.usr-input,
+.usr-select {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #1e293b;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.usr-input::placeholder {
+  color: #94a3b8;
+}
+
+.usr-input:focus,
+.usr-select:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+.usr-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 720px) {
+  .usr-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.usr-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  color: #1e293b;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.btn.btn-icon {
+  padding: 6px 10px;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  background: #f8fafc;
+  border-color: #0284c7;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.btn.primary {
+  background: linear-gradient(135deg, #0284c7, #0369a1);
+  border-color: rgba(2, 132, 199, 0.5);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+}
+
+.btn.primary:hover {
+  box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* tabla */
+
+.usr-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.usr-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  min-width: 260px;
+}
+
+.usr-search input {
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: #1e293b;
+  width: 100%;
+  font-size: 14px;
+}
+
+.usr-search input::placeholder {
+  color: #94a3b8;
+}
+
+.table-wrap {
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+}
+
+table.usr-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.usr-table th,
+.usr-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.usr-table thead th {
+  text-align: left;
+  color: #64748b;
+  background: #f8fafc;
+  position: sticky;
+  top: 0;
+  font-weight: 600;
+}
+
+.usr-row-item:hover {
+  background: rgba(2, 132, 199, 0.04);
+}
+
+/* badges - LIGHT THEME  */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.badge.admin {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+.badge.medico {
+  background: rgba(2, 132, 199, 0.1);
+  color: #0284c7;
+  border-color: rgba(2, 132, 199, 0.3);
+}
+
+.badge.viewer {
+  background: rgba(100, 116, 139, 0.1);
+  color: #64748b;
+  border-color: rgba(100, 116, 139, 0.3);
+}
+
+/* toasts */
+
+.toast {
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+.toast.ok {
+  color: #16a34a;
+}
+
+.toast.err {
+  color: #dc2626;
+}

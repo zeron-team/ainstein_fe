@@ -1,32 +1,35 @@
-/* Design Tokens: colores, tipografías, radios, sombras */
+/* Design Tokens: Light Theme - Medical Professional */
 :root {
-  /* Brand */
-  --brand: #60a5fa;             /* azul primario */
-  --brand-strong: #3b82f6;
-  --brand-weak: #93c5fd;
+  /* Brand - Azul médico profesional */
+  --brand: #0284c7;
+  --brand-strong: #0369a1;
+  --brand-weak: #38bdf8;
 
-  /* Surface + fondo */
-  --bg: #0b1220;
-  --bg-gradient-1: rgba(56, 189, 248, 0.08);
-  --bg-gradient-2: rgba(99, 102, 241, 0.10);
+  /* Surface + fondo - Tema claro */
+  --bg: #f8fafc;
+  --bg-gradient-1: rgba(2, 132, 199, 0.06);
+  --bg-gradient-2: rgba(99, 102, 241, 0.05);
 
-  --surface-0: #0e172a;         /* base cards */
-  --surface-1: #111a30;         /* glass */
-  --surface-2: #0b1326;         /* header/sidebar */
+  --surface-0: #ffffff;
+  /* base cards */
+  --surface-1: #f1f5f9;
+  /* glass/hover */
+  --surface-2: #e2e8f0;
+  /* header/sidebar bg */
 
   /* Bordes y sombras */
-  --border: rgba(122, 162, 247, 0.18);
-  --shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+  --border: rgba(148, 163, 184, 0.35);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 
   /* Texto */
-  --text: #eef2ff;
-  --muted: #9db0cc;
+  --text: #1e293b;
+  --muted: #64748b;
 
   /* Estados / feedback */
-  --ok: #10b981;
-  --warn: #f59e0b;
-  --error: #ef4444;
-  --info: #38bdf8;
+  --ok: #16a34a;
+  --warn: #d97706;
+  --error: #dc2626;
+  --info: #0284c7;
 
   /* Radios */
   --r-sm: 10px;

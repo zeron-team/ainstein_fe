@@ -1,16 +1,15 @@
-import React from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
-import { useAuth } from '@/auth/AuthContext'
+// src/App.tsx
+import React from "react";
+import { RouterProvider } from "react-router-dom";
+import { AuthProvider } from "@/auth/AuthContext";
+import router from "./router";
 
-type Props = {
-  roles?: Array<'admin' | 'medico' | 'viewer'>
-}
+const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
+};
 
-const PrivateRoute: React.FC<Props> = ({ roles }) => {
-  const { token, user } = useAuth()
-  if (!token) return <Navigate to="/login" replace />
-  if (roles && user && !roles.includes(user.role)) return <Navigate to="/" replace />
-  return <Outlet />
-}
-
-export default PrivateRoute
+export default App;
