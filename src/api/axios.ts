@@ -5,7 +5,7 @@ import axios, { AxiosError, AxiosHeaders } from "axios";
 // Base URL (dev vs producción)
 // ==============================
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ||
+  import.meta.env.VITE_API_URL ||
   (import.meta.env.DEV ? "http://127.0.0.1:8000" : "/api");
 
 // ==============================
@@ -214,11 +214,12 @@ function extractAxiosErrorMessage(e: unknown): string {
 
 export async function fetchAinsteinEpisodios(
   desde: string,
-  hasta: string
+  hasta: string,
+  tenant: string = "markey"  // Default to markey for backwards compatibility
 ): Promise<AinsteinEpisodio[]> {
   try {
     const res = await api.get("/ainstein/episodios", {
-      params: { desde, hasta },
+      params: { tenant, desde, hasta },
     });
     const data = res?.data;
     return Array.isArray(data) ? (data as AinsteinEpisodio[]) : [];
@@ -229,11 +230,12 @@ export async function fetchAinsteinEpisodios(
 
 export async function fetchAinsteinHistoria(
   inteCodigo: number,
-  paciCodigo: number
+  paciCodigo: number,
+  tenant: string = "markey"  // Default to markey for backwards compatibility
 ): Promise<AinsteinHistoriaEntrada[]> {
   try {
     const res = await api.get("/ainstein/historia", {
-      params: { inteCodigo, paciCodigo },
+      params: { tenant, inteCodigo, paciCodigo },
     });
     const data = res?.data;
     return Array.isArray(data) ? (data as AinsteinHistoriaEntrada[]) : [];

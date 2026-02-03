@@ -11,10 +11,11 @@ import {
   FaChartBar,
   FaHeartbeat,
   FaDollarSign,
+  FaBuilding,
 } from "react-icons/fa";
 import { useAuth } from "@/auth/AuthContext";
 
-const SIDEBAR_BUILD_ID = "2026-01-12_menu_reorganized";
+const SIDEBAR_BUILD_ID = "2026-01-27_tenants_added";
 
 type Props = {
   open: boolean;
@@ -52,6 +53,11 @@ export default function Sidebar({ open, onClose }: Props) {
                 to: "/admin/users",
                 icon: <FaFileMedical />,
                 label: "Usuarios",
+              },
+              {
+                to: "/admin/tenants",
+                icon: <FaBuilding />,
+                label: "Tenants",
               },
               {
                 to: "/admin/feedback",

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import api from "@/api/axios";
 import { useAuth } from "@/auth/AuthContext";
 import {
+  FaPlus,
   FaBed,
   FaClock,
   FaCheckCircle,
@@ -27,9 +28,14 @@ import {
   FaStethoscope,
   FaSortAlphaDown,
   FaSortAlphaUpAlt,
+  FaChevronLeft,
+  FaAngleDoubleLeft,
+  FaAngleDoubleRight,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import "./patients-list.css";
+import { ImportHceModal } from "@/components/ImportHceModal";
+
 
 type PacienteItem = {
   id: string;
@@ -37,12 +43,19 @@ type PacienteItem = {
   nombre: string;
   dni?: string | null;
   hce_numero?: string | null; // número de HCE / admisión
+  movimiento_id?: string | null; // ID Movimiento
   sector?: string | null;
   habitacion?: string | null;
   cama?: string | null;
   obra_social?: string | null;
   nro_beneficiario?: string | null;
   estado?: "internacion" | "falta_epc" | "epc_generada" | "alta" | null;
+  fecha_ingreso?: string | null;
+  fecha_egreso?: string | null;
+  edad?: number | null;
+  sexo?: string | null;
+  dias_estada?: number | null;
+  tipo_alta?: string | null;
   epc_created_by_name?: string | null; // usuario que generó la EPC
   epc_created_at?: string | null; // timestamp de creación de la EPC
 };
@@ -171,7 +184,8 @@ const ESTADOS = [
   { key: "alta", label: "Alta" },
 ];
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [20, 50, 100];
+const DEFAULT_PAGE_SIZE = 20;
 
 // Debounce local
 function useDebouncedValue<T>(value: T, delay = 450): T {
@@ -628,6 +642,7 @@ export default function PatientsList() {
 
   const [items, setItems] = useState<PacienteItem[]>([]);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [total, setTotal] = useState(0);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrev, setHasPrev] = useState(false);
@@ -636,6 +651,9 @@ export default function PatientsList() {
   const debouncedSearch = useDebouncedValue(search);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Modal de importación
+  const [importModalOpen, setImportModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [brainThinking, setBrainThinking] = useState(false);
 
@@ -714,7 +732,7 @@ export default function PatientsList() {
       setError(null);
       const params: any = {
         page,
-        page_size: PAGE_SIZE,
+        page_size: pageSize,
       };
       if (estadoFilter) params.estado = estadoFilter;
       if (debouncedSearch.trim()) params.q = debouncedSearch.trim();
@@ -744,7 +762,45 @@ export default function PatientsList() {
       if (listAbortRef.current) listAbortRef.current.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, estadoFilter, debouncedSearch]);
+  }, [page, pageSize, estadoFilter, debouncedSearch]);
+
+  // Calcular total de páginas
+  const totalPages = Math.ceil(total / pageSize) || 1;
+
+  // Generar array de páginas a mostrar (max 5 visibles)
+  const getVisiblePages = () => {
+    const pages: (number | 'ellipsis')[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible + 2) {
+      // Mostrar todas las páginas
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      // Siempre mostrar primera página
+      pages.push(1);
+
+      if (page > 3) pages.push('ellipsis');
+
+      // Páginas alrededor de la actual
+      const start = Math.max(2, page - 1);
+      const end = Math.min(totalPages - 1, page + 1);
+
+      for (let i = start; i <= end; i++) pages.push(i);
+
+      if (page < totalPages - 2) pages.push('ellipsis');
+
+      // Siempre mostrar última página
+      if (totalPages > 1) pages.push(totalPages);
+    }
+
+    return pages;
+  };
+
+  // Cambiar pageSize y resetear a página 1
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setPage(1);
+  };
 
   async function openEpc(p: PacienteItem, shouldGenerate: boolean) {
     try {
@@ -1199,8 +1255,11 @@ export default function PatientsList() {
           </p>
         </div>
         <div className="header-actions">
-          <button className="btn btn--primary" onClick={() => navigate("/patients/new")}>
-            Nuevo paciente
+          <button
+            className="btn btn--primary"
+            onClick={() => setImportModalOpen(true)}
+          >
+            <FaPlus /> Importar Paciente
           </button>
         </div>
       </div>
@@ -1269,6 +1328,12 @@ export default function PatientsList() {
               <tr>
                 <th className="col-apellido">Apellido</th>
                 <th className="col-nombre">Nombre</th>
+                <th className="col-edad">Edad</th>
+                <th className="col-sexo">Sexo</th>
+                <th className="col-ingreso">Ingreso</th>
+                <th className="col-egreso">Egreso</th>
+                <th className="col-dias">Días</th>
+                <th className="col-alta">Alta</th>
                 <th className="col-estado">Estado</th>
                 <th className="col-generado-por">Generado por</th>
                 <th className="col-fecha-epc">Fecha EPC</th>
@@ -1278,7 +1343,7 @@ export default function PatientsList() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center" }}>
+                  <td colSpan={12} style={{ textAlign: "center" }}>
                     Cargando…
                   </td>
                 </tr>
@@ -1286,7 +1351,7 @@ export default function PatientsList() {
 
               {!loading && items.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center" }}>
+                  <td colSpan={12} style={{ textAlign: "center" }}>
                     No hay pacientes que coincidan con los filtros actuales.
                   </td>
                 </tr>
@@ -1315,28 +1380,51 @@ export default function PatientsList() {
                         </div>
                       </td>
 
+                      <td className="col-edad">
+                        <span className="badge badge--hce">{p.edad ?? "-"}</span>
+                      </td>
+                      <td className="col-sexo">
+                        <span className="badge badge--hce">{p.sexo ?? "-"}</span>
+                      </td>
+                      <td className="col-ingreso">
+                        <span className="badge badge--hce">
+                          {p.fecha_ingreso ? new Date(p.fecha_ingreso).toLocaleDateString() : "-"}
+                        </span>
+                      </td>
+                      <td className="col-egreso">
+                        <span className="badge badge--hce">
+                          {p.fecha_egreso ? new Date(p.fecha_egreso).toLocaleDateString() : "-"}
+                        </span>
+                      </td>
+                      <td className="col-dias">
+                        <span className="badge badge--hce">{p.dias_estada ?? "-"}</span>
+                      </td>
+                      <td className="col-alta">
+                        <span className="badge badge--hce">{p.tipo_alta ?? "-"}</span>
+                      </td>
+
                       <td className="state-cell col-estado" data-label="Estado">
                         {p.estado === "internacion" && (
-                          <span className="badge badge--yellow">
-                            <FaBed /> Internación
+                          <span className="badge badge--yellow" title="Internación">
+                            <FaBed />
                           </span>
                         )}
                         {p.estado === "falta_epc" && (
-                          <span className="badge badge--orange">
-                            <FaClock /> Falta EPC
+                          <span className="badge badge--orange" title="Falta EPC">
+                            <FaClock />
                           </span>
                         )}
                         {p.estado === "epc_generada" && (
-                          <span className="badge badge--green">
-                            <FaCheckCircle /> EPC generada
+                          <span className="badge badge--green" title="EPC generada">
+                            <FaCheckCircle />
                           </span>
                         )}
                         {p.estado === "alta" && (
-                          <span className="badge badge--blue">
-                            <FaFileSignature /> Alta
+                          <span className="badge badge--blue" title="Alta">
+                            <FaFileSignature />
                           </span>
                         )}
-                        {!p.estado && <span className="badge">Sin estado</span>}
+                        {!p.estado && <span className="badge" title="Sin estado">-</span>}
                       </td>
 
                       <td className="col-generado-por" data-label="Generado por">
@@ -1344,22 +1432,32 @@ export default function PatientsList() {
                       </td>
 
                       <td className="col-fecha-epc" data-label="Fecha EPC">
-                        {p.epc_created_at
-                          ? new Date(p.epc_created_at).toLocaleString("es-AR", {
-                            day: "2-digit",
-                            month: "2-digit",
-                            year: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })
-                          : "-"}
+                        {p.epc_created_at ? (
+                          <div className="datetime-stack">
+                            <div className="dt-date">
+                              {new Date(p.epc_created_at).toLocaleDateString("es-AR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                              })}
+                            </div>
+                            <div className="dt-time">
+                              {new Date(p.epc_created_at).toLocaleTimeString("es-AR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </div>
+                          </div>
+                        ) : (
+                          "-"
+                        )}
                       </td>
 
                       <td className="actions-cell col-actions" data-label="Acciones">
-                        <div className="row-actions">
-                          {/* Botón principal: Ver/Generar EPC */}
+                        <div className="actions-grid">
+                          {/* 1. Ver/Generar EPC */}
                           <button
-                            className={`action-btn action-btn--epc${isProcessing ? " is-loading" : ""}`}
+                            className={`grid-btn grid-btn--epc${isProcessing ? " is-loading" : ""}`}
                             onClick={() =>
                               openEpc(
                                 p,
@@ -1367,43 +1465,42 @@ export default function PatientsList() {
                               )
                             }
                             disabled={!!actionLoading}
+                            title={isGenerated ? "Ver EPC" : "Generar EPC"}
                           >
                             {isGenerated ? <FaFileSignature /> : <FaNotesMedical />}
-                            <span>{isProcessing ? "Procesando…" : isGenerated ? "Ver EPC" : "Generar EPC"}</span>
                           </button>
 
-                          {/* Grupo de acciones secundarias */}
-                          <div className="action-icons">
-                            <button
-                              className="action-icon-btn action-icon-btn--view"
-                              onClick={() => openHceReader(p)}
-                              disabled={!!actionLoading}
-                              title="Ver Historia Clínica"
-                            >
-                              <FaEye />
-                            </button>
+                          {/* 2. Ver HCE */}
+                          <button
+                            className="grid-btn grid-btn--view"
+                            onClick={() => openHceReader(p)}
+                            disabled={!!actionLoading}
+                            title="Ver Historia Clínica"
+                          >
+                            <FaEye />
+                          </button>
 
-                            {user?.role === "admin" && (
-                              <>
-                                <button
-                                  className="action-icon-btn action-icon-btn--edit"
-                                  onClick={() => navigate(`/patients/${p.id}/edit`)}
-                                  disabled={!!actionLoading}
-                                  title="Editar Paciente"
-                                >
-                                  <FaEdit />
-                                </button>
-                                <button
-                                  className="action-icon-btn action-icon-btn--delete"
-                                  onClick={() => handleDelete(p.id)}
-                                  disabled={!!actionLoading}
-                                  title="Eliminar Paciente"
-                                >
-                                  <FaTrash />
-                                </button>
-                              </>
-                            )}
-                          </div>
+                          {/* Admin actions */}
+                          {user?.role === "admin" && (
+                            <>
+                              <button
+                                className="grid-btn grid-btn--edit"
+                                onClick={() => navigate(`/patients/${p.id}/edit`)}
+                                disabled={!!actionLoading}
+                                title="Editar Paciente"
+                              >
+                                <FaEdit />
+                              </button>
+                              <button
+                                className="grid-btn grid-btn--delete"
+                                onClick={() => handleDelete(p.id)}
+                                disabled={!!actionLoading}
+                                title="Eliminar Paciente"
+                              >
+                                <FaTrash />
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -1413,21 +1510,101 @@ export default function PatientsList() {
           </table>
         </div>
 
-        <div className="patients-pagination">
-          <button
-            className="btn btn--ghost"
-            disabled={!hasPrev || loading}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            Anterior
-          </button>
-          <button
-            className="btn btn--ghost"
-            disabled={!hasNext || loading}
-            onClick={() => setPage((p) => p + 1)}
-          >
-            Siguiente
-          </button>
+        {/* Paginación Profesional */}
+        <div className="patients-pagination-pro">
+          {/* Selector de cantidad */}
+          <div className="pagination-size-selector">
+            <span className="pagination-label">Mostrar:</span>
+            <select
+              value={pageSize}
+              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              className="pagination-select"
+              disabled={loading}
+            >
+              {PAGE_SIZE_OPTIONS.map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+            <span className="pagination-label">por página</span>
+          </div>
+
+          {/* Info de resultados */}
+          <div className="pagination-info">
+            {total > 0 ? (
+              <>
+                <span className="pagination-range">
+                  {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, total)}
+                </span>
+                <span className="pagination-of"> de </span>
+                <span className="pagination-total">{total}</span>
+              </>
+            ) : (
+              <span>Sin resultados</span>
+            )}
+          </div>
+
+          {/* Navegación de páginas */}
+          <div className="pagination-nav">
+            {/* Primera página */}
+            <button
+              className="pagination-btn"
+              disabled={page === 1 || loading}
+              onClick={() => setPage(1)}
+              title="Primera página"
+            >
+              <FaAngleDoubleLeft />
+            </button>
+
+            {/* Anterior */}
+            <button
+              className="pagination-btn"
+              disabled={!hasPrev || loading}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              title="Anterior"
+            >
+              <FaChevronLeft />
+            </button>
+
+            {/* Números de página */}
+            <div className="pagination-numbers">
+              {getVisiblePages().map((p, idx) =>
+                p === 'ellipsis' ? (
+                  <span key={`ellipsis-${idx}`} className="pagination-ellipsis">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    className={`pagination-num ${page === p ? 'active' : ''}`}
+                    disabled={loading}
+                    onClick={() => setPage(p)}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+            </div>
+
+            {/* Siguiente */}
+            <button
+              className="pagination-btn"
+              disabled={!hasNext || loading}
+              onClick={() => setPage((p) => p + 1)}
+              title="Siguiente"
+            >
+              <FaChevronRight />
+            </button>
+
+            {/* Última página */}
+            <button
+              className="pagination-btn"
+              disabled={page === totalPages || loading}
+              onClick={() => setPage(totalPages)}
+              title="Última página"
+            >
+              <FaAngleDoubleRight />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1452,269 +1629,284 @@ export default function PatientsList() {
         </div>
       )}
 
+      {/* Modal de Importación HCE */}
+      {importModalOpen && (
+        <ImportHceModal
+          onClose={() => setImportModalOpen(false)}
+          onImportSuccess={() => {
+            setImportModalOpen(false);
+            fetchData();
+          }}
+        />
+      )}
+
+
+
       {/* =========================
           Modal Lector HCE
          ========================= */}
-      {hceOpen && (
-        <div className="hce-modal__overlay" onClick={closeHceReader} role="dialog" aria-modal="true">
-          <div className="hce-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="hce-modal__top">
-              <div className="hce-modal__title">
-                <div className="hce-modal__h1">Lectura de HCE</div>
-                <div className="hce-modal__sub">
-                  {hcePatient ? `${hcePatient.apellido} ${hcePatient.nombre} • ID ${hcePatient.id}` : "-"}
+      {
+        hceOpen && (
+          <div className="hce-modal__overlay" onClick={closeHceReader} role="dialog" aria-modal="true">
+            <div className="hce-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="hce-modal__top">
+                <div className="hce-modal__title">
+                  <div className="hce-modal__h1">Lectura de HCE</div>
+                  <div className="hce-modal__sub">
+                    {hcePatient ? `${hcePatient.apellido} ${hcePatient.nombre} • ID ${hcePatient.id}` : "-"}
+                  </div>
                 </div>
+
+                <button className="hce-modal__close" onClick={closeHceReader} title="Cerrar">
+                  <FaTimes />
+                </button>
               </div>
 
-              <button className="hce-modal__close" onClick={closeHceReader} title="Cerrar">
-                <FaTimes />
-              </button>
-            </div>
+              <div className="hce-modal__tabs">
+                <button
+                  className={`hce-tab ${hceTab === "vista" ? "is-active" : ""}`}
+                  onClick={() => setHceTab("vista")}
+                  disabled={hceLoading}
+                >
+                  Vista clínica
+                </button>
+                <button
+                  className={`hce-tab ${hceTab === "texto" ? "is-active" : ""}`}
+                  onClick={() => setHceTab("texto")}
+                  disabled={hceLoading}
+                >
+                  Texto
+                </button>
+                <button
+                  className={`hce-tab ${hceTab === "json" ? "is-active" : ""}`}
+                  onClick={() => setHceTab("json")}
+                  disabled={hceLoading}
+                >
+                  JSON
+                </button>
+              </div>
 
-            <div className="hce-modal__tabs">
-              <button
-                className={`hce-tab ${hceTab === "vista" ? "is-active" : ""}`}
-                onClick={() => setHceTab("vista")}
-                disabled={hceLoading}
-              >
-                Vista clínica
-              </button>
-              <button
-                className={`hce-tab ${hceTab === "texto" ? "is-active" : ""}`}
-                onClick={() => setHceTab("texto")}
-                disabled={hceLoading}
-              >
-                Texto
-              </button>
-              <button
-                className={`hce-tab ${hceTab === "json" ? "is-active" : ""}`}
-                onClick={() => setHceTab("json")}
-                disabled={hceLoading}
-              >
-                JSON
-              </button>
-            </div>
+              <div className="hce-modal__body">
+                {hceLoading && <div className="hce-loading">Cargando HCE…</div>}
 
-            <div className="hce-modal__body">
-              {hceLoading && <div className="hce-loading">Cargando HCE…</div>}
+                {!hceLoading && hceError && <div className="hce-error">{hceError}</div>}
 
-              {!hceLoading && hceError && <div className="hce-error">{hceError}</div>}
+                {!hceLoading && !hceError && !hceDoc && (
+                  <div className="hce-empty">No se encontró HCE para este paciente.</div>
+                )}
 
-              {!hceLoading && !hceError && !hceDoc && (
-                <div className="hce-empty">No se encontró HCE para este paciente.</div>
-              )}
+                {!hceLoading && !hceError && hceDoc && (
+                  <>
+                    {hceTab === "vista" && (
+                      <div className="hce-vista">
+                        <div className="hce-kpis">
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Ingreso</div>
+                            <div className="hce-kpi__v">{structuredSummary.fecha_ingreso}</div>
+                          </div>
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Egreso (orig)</div>
+                            <div className="hce-kpi__v">{structuredSummary.fecha_egreso_original}</div>
+                          </div>
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Sexo</div>
+                            <div className="hce-kpi__v">
+                              <span className="hce-inline">
+                                <FaVenusMars /> {String(structuredSummary.sexo)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Edad</div>
+                            <div className="hce-kpi__v">
+                              <span className="hce-inline">
+                                <FaUser /> {String(structuredSummary.edad)}
+                              </span>
+                            </div>
+                          </div>
 
-              {!hceLoading && !hceError && hceDoc && (
-                <>
-                  {hceTab === "vista" && (
-                    <div className="hce-vista">
-                      <div className="hce-kpis">
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Ingreso</div>
-                          <div className="hce-kpi__v">{structuredSummary.fecha_ingreso}</div>
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Ubicación</div>
+                            <div className="hce-kpi__v">
+                              <span className="hce-inline">
+                                <FaHospitalAlt /> {ubicacion.label}
+                              </span>
+                              <div className="hce-muted hce-muted--mini mono">Desde {ubicacion.when}</div>
+                            </div>
+                          </div>
+
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Hab.</div>
+                            <div className="hce-kpi__v">{structuredSummary.habitacion}</div>
+                          </div>
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Cama</div>
+                            <div className="hce-kpi__v">{structuredSummary.cama}</div>
+                          </div>
+
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Obra social</div>
+                            <div className="hce-kpi__v">{structuredSummary.obra_social}</div>
+                          </div>
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Benef.</div>
+                            <div className="hce-kpi__v">{structuredSummary.nro_beneficiario}</div>
+                          </div>
+
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Adm/Protocolo</div>
+                            <div className="hce-kpi__v">
+                              {structuredSummary.admision_num} • {structuredSummary.protocolo}
+                            </div>
+                          </div>
+
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Días estada</div>
+                            <div className="hce-kpi__v">{String(structuredSummary.dias_estada)}</div>
+                          </div>
+                          <div className="hce-kpi">
+                            <div className="hce-kpi__k">Tipo alta</div>
+                            <div className="hce-kpi__v">{String(structuredSummary.tipo_alta)}</div>
+                          </div>
                         </div>
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Egreso (orig)</div>
-                          <div className="hce-kpi__v">{structuredSummary.fecha_egreso_original}</div>
-                        </div>
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Sexo</div>
-                          <div className="hce-kpi__v">
-                            <span className="hce-inline">
-                              <FaVenusMars /> {String(structuredSummary.sexo)}
+
+                        {hasAinsteinHistoria && (
+                          <div className="hce-actionsbar">
+                            <button className="hce-mini-btn" onClick={() => toggleAll(true)}>
+                              <FaChevronDown /> Expandir todo
+                            </button>
+                            <button className="hce-mini-btn" onClick={() => toggleAll(false)}>
+                              <FaChevronRight /> Colapsar todo
+                            </button>
+                          </div>
+                        )}
+
+                        {hasAinsteinHistoria && (
+                          <div className="hce-section">
+                            <div className="hce-section__title">
+                              <span className="hce-ico">
+                                <FaRegListAlt />
+                              </span>
+                              Historia clínica (Ainstein)
+                            </div>
+
+                            <div className="hce-accordion">
+                              {toArray<AinsteinHistoriaEntrada>(hceDoc.ainstein?.historia).map((h) => {
+                                const open = !!expandedEntr[h.entrCodigo];
+                                const title = h.entrTipoRegistro || "Registro";
+                                const when = h.entrFechaAtencion ? fmtDt(h.entrFechaAtencion) : "-";
+
+                                return (
+                                  <div key={h.entrCodigo} className="hce-acc-item">
+                                    <button
+                                      className="hce-acc-head"
+                                      onClick={() =>
+                                        setExpandedEntr((p) => ({
+                                          ...p,
+                                          [h.entrCodigo]: !p[h.entrCodigo],
+                                        }))
+                                      }
+                                    >
+                                      <span className="hce-acc-icon" aria-hidden="true">
+                                        {open ? <FaChevronDown /> : <FaChevronRight />}
+                                      </span>
+
+                                      <span className="hce-acc-title">
+                                        {title} <span className="mono">#{h.entrCodigo}</span>
+                                      </span>
+
+                                      <span className="hce-acc-when mono">{when}</span>
+                                    </button>
+
+                                    {open && (
+                                      <div className="hce-acc-body">
+                                        {renderMotivoEvoPlan(h)}
+                                        {renderDiagnosticos(h.diagnosticos)}
+                                        {renderFarmacos(h.indicacionFarmacologica)}
+                                        {renderProcedimientos(h.indicacionProcedimientos)}
+                                        {renderEnfermeria(h.indicacionEnfermeria)}
+                                        {renderPlantillas(h.plantillas)}
+
+                                        {!h.entrMotivoConsulta &&
+                                          !h.entrEvolucion &&
+                                          !h.entrPlan &&
+                                          toArray(h.diagnosticos).length === 0 &&
+                                          toArray(h.indicacionFarmacologica).length === 0 &&
+                                          toArray(h.indicacionProcedimientos).length === 0 &&
+                                          toArray(h.indicacionEnfermeria).length === 0 &&
+                                          toArray(h.plantillas).length === 0 && (
+                                            <div className="hce-muted">
+                                              No hay contenido clínico detallado en este registro (solo cabecera).
+                                            </div>
+                                          )}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {!hasAinsteinHistoria && (
+                          <div className="hce-section">
+                            <div className="hce-section__title">Contenido</div>
+                            <div className="hce-muted">
+                              Esta HCE no trae historia Ainstein. Podés verla en pestaña “Texto” o “JSON”.
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {hceTab === "texto" && (
+                      <div className="hce-texto">
+                        <div className="hce-section">
+                          <div className="hce-section__title">
+                            <span className="hce-ico">
+                              <FaNotesMedical />
                             </span>
+                            Texto consolidado por secciones (cronológico)
                           </div>
-                        </div>
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Edad</div>
-                          <div className="hce-kpi__v">
-                            <span className="hce-inline">
-                              <FaUser /> {String(structuredSummary.edad)}
-                            </span>
+
+                          <pre className="hce-pre hce-pre--big">
+                            {groupedText || "(Sin texto)"}
+                          </pre>
+
+                          <div className="hce-muted hce-muted--pad">
+                            Nota: si el backend envía un <code>text</code> “metadata” tipo JSON (source/inteCodigo/paciCodigo),
+                            esta vista lo ignora y reconstruye el texto desde Ainstein (historia/indicaciones/enfermería).
                           </div>
-                        </div>
-
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Ubicación</div>
-                          <div className="hce-kpi__v">
-                            <span className="hce-inline">
-                              <FaHospitalAlt /> {ubicacion.label}
-                            </span>
-                            <div className="hce-muted hce-muted--mini mono">Desde {ubicacion.when}</div>
-                          </div>
-                        </div>
-
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Hab.</div>
-                          <div className="hce-kpi__v">{structuredSummary.habitacion}</div>
-                        </div>
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Cama</div>
-                          <div className="hce-kpi__v">{structuredSummary.cama}</div>
-                        </div>
-
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Obra social</div>
-                          <div className="hce-kpi__v">{structuredSummary.obra_social}</div>
-                        </div>
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Benef.</div>
-                          <div className="hce-kpi__v">{structuredSummary.nro_beneficiario}</div>
-                        </div>
-
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Adm/Protocolo</div>
-                          <div className="hce-kpi__v">
-                            {structuredSummary.admision_num} • {structuredSummary.protocolo}
-                          </div>
-                        </div>
-
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Días estada</div>
-                          <div className="hce-kpi__v">{String(structuredSummary.dias_estada)}</div>
-                        </div>
-                        <div className="hce-kpi">
-                          <div className="hce-kpi__k">Tipo alta</div>
-                          <div className="hce-kpi__v">{String(structuredSummary.tipo_alta)}</div>
                         </div>
                       </div>
+                    )}
 
-                      {hasAinsteinHistoria && (
-                        <div className="hce-actionsbar">
-                          <button className="hce-mini-btn" onClick={() => toggleAll(true)}>
-                            <FaChevronDown /> Expandir todo
-                          </button>
-                          <button className="hce-mini-btn" onClick={() => toggleAll(false)}>
-                            <FaChevronRight /> Colapsar todo
-                          </button>
-                        </div>
-                      )}
-
-                      {hasAinsteinHistoria && (
+                    {hceTab === "json" && (
+                      <div className="hce-json">
                         <div className="hce-section">
                           <div className="hce-section__title">
                             <span className="hce-ico">
                               <FaRegListAlt />
                             </span>
-                            Historia clínica (Ainstein)
+                            Documento completo
                           </div>
-
-                          <div className="hce-accordion">
-                            {toArray<AinsteinHistoriaEntrada>(hceDoc.ainstein?.historia).map((h) => {
-                              const open = !!expandedEntr[h.entrCodigo];
-                              const title = h.entrTipoRegistro || "Registro";
-                              const when = h.entrFechaAtencion ? fmtDt(h.entrFechaAtencion) : "-";
-
-                              return (
-                                <div key={h.entrCodigo} className="hce-acc-item">
-                                  <button
-                                    className="hce-acc-head"
-                                    onClick={() =>
-                                      setExpandedEntr((p) => ({
-                                        ...p,
-                                        [h.entrCodigo]: !p[h.entrCodigo],
-                                      }))
-                                    }
-                                  >
-                                    <span className="hce-acc-icon" aria-hidden="true">
-                                      {open ? <FaChevronDown /> : <FaChevronRight />}
-                                    </span>
-
-                                    <span className="hce-acc-title">
-                                      {title} <span className="mono">#{h.entrCodigo}</span>
-                                    </span>
-
-                                    <span className="hce-acc-when mono">{when}</span>
-                                  </button>
-
-                                  {open && (
-                                    <div className="hce-acc-body">
-                                      {renderMotivoEvoPlan(h)}
-                                      {renderDiagnosticos(h.diagnosticos)}
-                                      {renderFarmacos(h.indicacionFarmacologica)}
-                                      {renderProcedimientos(h.indicacionProcedimientos)}
-                                      {renderEnfermeria(h.indicacionEnfermeria)}
-                                      {renderPlantillas(h.plantillas)}
-
-                                      {!h.entrMotivoConsulta &&
-                                        !h.entrEvolucion &&
-                                        !h.entrPlan &&
-                                        toArray(h.diagnosticos).length === 0 &&
-                                        toArray(h.indicacionFarmacologica).length === 0 &&
-                                        toArray(h.indicacionProcedimientos).length === 0 &&
-                                        toArray(h.indicacionEnfermeria).length === 0 &&
-                                        toArray(h.plantillas).length === 0 && (
-                                          <div className="hce-muted">
-                                            No hay contenido clínico detallado en este registro (solo cabecera).
-                                          </div>
-                                        )}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {!hasAinsteinHistoria && (
-                        <div className="hce-section">
-                          <div className="hce-section__title">Contenido</div>
-                          <div className="hce-muted">
-                            Esta HCE no trae historia Ainstein. Podés verla en pestaña “Texto” o “JSON”.
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {hceTab === "texto" && (
-                    <div className="hce-texto">
-                      <div className="hce-section">
-                        <div className="hce-section__title">
-                          <span className="hce-ico">
-                            <FaNotesMedical />
-                          </span>
-                          Texto consolidado por secciones (cronológico)
-                        </div>
-
-                        <pre className="hce-pre hce-pre--big">
-                          {groupedText || "(Sin texto)"}
-                        </pre>
-
-                        <div className="hce-muted hce-muted--pad">
-                          Nota: si el backend envía un <code>text</code> “metadata” tipo JSON (source/inteCodigo/paciCodigo),
-                          esta vista lo ignora y reconstruye el texto desde Ainstein (historia/indicaciones/enfermería).
+                          <pre className="hce-pre hce-pre--big">{safeText(hceDoc)}</pre>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </>
+                )}
+              </div>
 
-                  {hceTab === "json" && (
-                    <div className="hce-json">
-                      <div className="hce-section">
-                        <div className="hce-section__title">
-                          <span className="hce-ico">
-                            <FaRegListAlt />
-                          </span>
-                          Documento completo
-                        </div>
-                        <pre className="hce-pre hce-pre--big">{safeText(hceDoc)}</pre>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            <div className="hce-modal__footer">
-              <div className="hce-muted">
-                Tip: esta pestaña “Texto” ahora arma la salida por hitos agrupados por secciones y en orden cronológico.
+              <div className="hce-modal__footer">
+                <div className="hce-muted">
+                  Tip: esta pestaña “Texto” ahora arma la salida por hitos agrupados por secciones y en orden cronológico.
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

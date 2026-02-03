@@ -1,51 +1,88 @@
-/* Design Tokens: Light Theme - Medical Professional */
+/* Design Tokens: Light Theme - Medical Professional
+ * AInstein Design System - Variables CSS Unificadas
+ * Usar siempre estas variables en lugar de valores hardcodeados
+ */
 :root {
-  /* Brand - Azul médico profesional */
+  /* =====================================================
+     COLORES BASE
+  ===================================================== */
+  
+  /* Fondos */
+  --bg: #f8fafc;                    /* Fondo principal */
+  --bg-alt: #f1f5f9;                /* Fondo alternativo */
+  --card: #ffffff;                  /* Fondo de tarjetas */
+  
+  /* Texto */
+  --text: #1e293b;                  /* Texto principal */
+  --muted: #64748b;                 /* Texto secundario */
+  
+  /* =====================================================
+     COLORES PRIMARIOS
+  ===================================================== */
+  --primary: #0284c7;               /* Azul corporativo */
+  --primary-2: #4f46e5;             /* Índigo accent */
+  --accent: linear-gradient(135deg, var(--primary), var(--primary-2));
+  
+  /* Brand aliases (compatibilidad) */
   --brand: #0284c7;
   --brand-strong: #0369a1;
   --brand-weak: #38bdf8;
-
-  /* Surface + fondo - Tema claro */
-  --bg: #f8fafc;
-  --bg-gradient-1: rgba(2, 132, 199, 0.06);
-  --bg-gradient-2: rgba(99, 102, 241, 0.05);
-
-  --surface-0: #ffffff;
-  /* base cards */
-  --surface-1: #f1f5f9;
-  /* glass/hover */
-  --surface-2: #e2e8f0;
-  /* header/sidebar bg */
-
-  /* Bordes y sombras */
+  
+  /* =====================================================
+     ESTADOS / FEEDBACK
+  ===================================================== */
+  --success: #16a34a;               /* Verde éxito */
+  --warning: #d97706;               /* Naranja advertencia */
+  --error: #dc2626;                 /* Rojo error */
+  --info: #0284c7;                  /* Azul info */
+  
+  /* Aliases (compatibilidad) */
+  --ok: var(--success);
+  --warn: var(--warning);
+  
+  /* =====================================================
+     BORDES Y SOMBRAS
+  ===================================================== */
   --border: rgba(148, 163, 184, 0.35);
+  --border-hover: rgba(2, 132, 199, 0.3);
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-
-  /* Texto */
-  --text: #1e293b;
-  --muted: #64748b;
-
-  /* Estados / feedback */
-  --ok: #16a34a;
-  --warn: #d97706;
-  --error: #dc2626;
-  --info: #0284c7;
-
-  /* Radios */
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+  
+  /* =====================================================
+     RADIOS
+  ===================================================== */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  
+  /* Aliases (compatibilidad) */
   --r-sm: 10px;
   --r-md: 16px;
   --r-lg: 20px;
   --r-xl: 26px;
-
-  /* Espaciado base */
+  
+  /* =====================================================
+     SUPERFICIES (compatibilidad layout.css)
+  ===================================================== */
+  --surface-0: #ffffff;
+  --surface-1: #f1f5f9;
+  --surface-2: #e2e8f0;
+  --bg-gradient-1: rgba(2, 132, 199, 0.06);
+  --bg-gradient-2: rgba(99, 102, 241, 0.05);
+  
+  /* =====================================================
+     ESPACIADO
+  ===================================================== */
   --sp-1: 4px;
   --sp-2: 8px;
   --sp-3: 12px;
   --sp-4: 16px;
   --sp-5: 20px;
   --sp-6: 24px;
-
-  /* Z layers */
+  
+  /* =====================================================
+     Z-INDEX LAYERS
+  ===================================================== */
   --z-header: 50;
   --z-sidebar: 40;
 }

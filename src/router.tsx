@@ -17,6 +17,7 @@ import UsersCRUD from "@/pages/Users/UsersCRUD";
 import FeedbackDashboard from "@/pages/Admin/FeedbackDashboard";
 import CostsDashboard from "@/pages/Admin/CostsDashboard";
 import HealthCheck from "@/pages/Admin/HealthCheck";
+import TenantManager from "@/pages/Admin/TenantManager";
 import ErrorPage from "@/pages/ErrorPage";
 import AinsteinWsPage from "@/pages/AinsteinWsPage";
 
@@ -57,6 +58,7 @@ const router = createBrowserRouter([
               { path: "admin/feedback", element: <FeedbackDashboard /> },
               { path: "admin/costs", element: <CostsDashboard /> },
               { path: "admin/health", element: <HealthCheck /> },
+              { path: "admin/tenants", element: <TenantManager /> },
             ],
           },
         ],

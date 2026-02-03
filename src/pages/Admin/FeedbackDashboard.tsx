@@ -187,7 +187,7 @@ export default function FeedbackDashboard() {
     const [stats, setStats] = useState<FeedbackStats | null>(null);
 
     // Estado para tabs y vista agrupada
-    const [activeTab, setActiveTab] = useState<"stats" | "grouped" | "learning">("stats");
+    const [activeTab, setActiveTab] = useState<"stats" | "grouped" | "learning" | "flow">("stats");
     const [groupedData, setGroupedData] = useState<GroupedEPC[]>([]);
     const [loadingGrouped, setLoadingGrouped] = useState(false);
     const [expandedEpcs, setExpandedEpcs] = useState<Set<string>>(new Set());
@@ -294,7 +294,7 @@ export default function FeedbackDashboard() {
         });
     }
 
-    function handleTabChange(tab: "stats" | "grouped" | "learning") {
+    function handleTabChange(tab: "stats" | "grouped" | "learning" | "flow") {
         setActiveTab(tab);
         if (tab === "grouped" && groupedData.length === 0) {
             loadGrouped();
@@ -384,6 +384,12 @@ export default function FeedbackDashboard() {
                             onClick={() => handleTabChange("learning")}
                         >
                             <FaBrain /> Aprendizaje
+                        </button>
+                        <button
+                            className={`fb-tab ${activeTab === "flow" ? "active" : ""}`}
+                            onClick={() => handleTabChange("flow")}
+                        >
+                            <FaChartLine /> Flujo
                         </button>
                     </div>
                     <button className="fb-btn-refresh" onClick={activeTab === "stats" ? loadStats : loadGrouped}>
@@ -961,6 +967,157 @@ export default function FeedbackDashboard() {
                                 </div>
                             )}
                         </>
+                    )}
+                </div>
+            )}
+
+            {/* ===================== TAB: FLUJO DE APRENDIZAJE ===================== */}
+            {activeTab === "flow" && (
+                <div className="fb-flow-wrap">
+                    {/* Header explicativo */}
+                    <div className="fb-flow-header-box">
+                        <FaBrain className="fb-flow-main-icon" />
+                        <div>
+                            <h2>¿Cómo aprende el sistema?</h2>
+                            <p>Cada vez que evalúas una sección de EPC, el sistema guarda tus preferencias y las usa para mejorar las futuras generaciones <strong>solo para ti</strong>.</p>
+                        </div>
+                    </div>
+
+                    {/* Explicación de las 3 preguntas */}
+                    <div className="fb-flow-questions-section">
+                        <h3>Las 3 preguntas clave</h3>
+                        <p className="fb-flow-subtitle">Cuando calificas "Parcial" o "Mal", respondes 3 preguntas que el sistema usa para aprender:</p>
+
+                        <div className="fb-flow-questions-grid">
+                            <div className="fb-flow-question-card">
+                                <div className="fb-flow-q-number">1</div>
+                                <div>
+                                    <h5>¿Tiene omisiones?</h5>
+                                    <p>Si respondes <strong>SÍ</strong> frecuentemente, el sistema aprenderá a incluir más información en esa sección.</p>
+                                </div>
+                            </div>
+                            <div className="fb-flow-question-card">
+                                <div className="fb-flow-q-number">2</div>
+                                <div>
+                                    <h5>¿Tiene repeticiones?</h5>
+                                    <p>Si respondes <strong>SÍ</strong> frecuentemente, el sistema aprenderá a evitar información redundante.</p>
+                                </div>
+                            </div>
+                            <div className="fb-flow-question-card">
+                                <div className="fb-flow-q-number">3</div>
+                                <div>
+                                    <h5>¿Es confuso o erróneo?</h5>
+                                    <p>Si respondes <strong>SÍ</strong> frecuentemente, el sistema aprenderá a ser más claro y preciso.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Flujo paso a paso */}
+                    <div className="fb-flow-steps-section">
+                        <h3>Flujo de aprendizaje paso a paso</h3>
+
+                        <div className="fb-flow-steps">
+                            <div className="fb-flow-step-box">
+                                <div className="fb-flow-step-num">1</div>
+                                <div className="fb-flow-step-text">
+                                    <h5>Evalúas la EPC</h5>
+                                    <p>Calificas cada sección como <span className="tag-ok">OK</span>, <span className="tag-partial">Parcial</span> o <span className="tag-bad">Mal</span>. Si no está OK, respondes las 3 preguntas y opcionalmente agregas un comentario.</p>
+                                </div>
+                            </div>
+
+                            <div className="fb-flow-step-box">
+                                <div className="fb-flow-step-num">2</div>
+                                <div className="fb-flow-step-text">
+                                    <h5>Se guarda tu feedback</h5>
+                                    <p>El sistema almacena: <strong>tu usuario</strong>, <strong>la sección</strong>, <strong>la calificación</strong>, <strong>las 3 respuestas SI/NO</strong>, y <strong>tu comentario</strong>.</p>
+                                </div>
+                            </div>
+
+                            <div className="fb-flow-step-box">
+                                <div className="fb-flow-step-num">3</div>
+                                <div className="fb-flow-step-text">
+                                    <h5>Se clasifica la regla</h5>
+                                    <p><strong>OK</strong> = "Mantener este estilo" | <strong>Parcial/Mal</strong> = "Evitar esto" + análisis de las 3 preguntas.</p>
+                                </div>
+                            </div>
+
+                            <div className="fb-flow-step-box">
+                                <div className="fb-flow-step-num">4</div>
+                                <div className="fb-flow-step-text">
+                                    <h5>Próxima generación</h5>
+                                    <p>Cuando generas una nueva EPC, el sistema busca tus <strong>últimos 50 feedbacks</strong> y extrae las reglas más importantes.</p>
+                                </div>
+                            </div>
+
+                            <div className="fb-flow-step-box">
+                                <div className="fb-flow-step-num">5</div>
+                                <div className="fb-flow-step-text">
+                                    <h5>Se aplican las reglas</h5>
+                                    <p>Para cada sección, se incluyen hasta <strong>3 reglas de texto</strong> + <strong>alertas automáticas</strong> si respondiste SÍ a las preguntas 2+ veces.</p>
+                                </div>
+                            </div>
+
+                            <div className="fb-flow-step-box final">
+                                <div className="fb-flow-step-num final">✓</div>
+                                <div className="fb-flow-step-text">
+                                    <h5>IA genera personalizada</h5>
+                                    <p>La inteligencia artificial recibe tus preferencias y genera la EPC adaptada a <strong>tu estilo</strong>.</p>
+                                    <code>PARA 'evolucion': ⚠️ Evitar omisiones (reportado 3 veces)</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Info adicional */}
+                    <div className="fb-flow-info-grid">
+                        <div className="fb-flow-info-card green">
+                            <FaCheckCircle />
+                            <div>
+                                <h5>Personalizado</h5>
+                                <p>Cada médico tiene sus propias reglas, el aprendizaje es individual.</p>
+                            </div>
+                        </div>
+                        <div className="fb-flow-info-card blue">
+                            <FaLightbulb />
+                            <div>
+                                <h5>Por sección</h5>
+                                <p>Evolucion, Procedimientos, etc. aprenden de forma independiente.</p>
+                            </div>
+                        </div>
+                        <div className="fb-flow-info-card purple">
+                            <FaBrain />
+                            <div>
+                                <h5>Acumulativo</h5>
+                                <p>Mientras más evalúes, mejor entiende el sistema tus preferencias.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Stats */}
+                    {stats && (
+                        <div className="fb-flow-stats-compact">
+                            <div className="fb-flow-stat-item">
+                                <span className="value">{stats.summary.total}</span>
+                                <span className="label">Feedbacks</span>
+                            </div>
+                            <div className="fb-flow-stat-item">
+                                <span className="value">{Object.keys(stats.by_section).length}</span>
+                                <span className="label">Secciones</span>
+                            </div>
+                            <div className="fb-flow-stat-item green">
+                                <span className="value">{stats.summary.ok_pct}%</span>
+                                <span className="label">Éxito</span>
+                            </div>
+                            {stats.questions_summary && (
+                                <div className="fb-flow-stat-item orange">
+                                    <span className="value">
+                                        {stats.questions_summary.omissions + stats.questions_summary.repetitions + stats.questions_summary.confusing}
+                                    </span>
+                                    <span className="label">Problemas detectados</span>
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
             )}

@@ -337,6 +337,16 @@ export default function ViewEditEPC() {
   const [indicacionesAltaText, setIndicacionesAltaText] = useState("");
   const [recomendacionesText, setRecomendacionesText] = useState("");
 
+  // Datos estructurados de medicación (para separar internación vs previa)
+  type MedicacionItem = {
+    tipo: "internacion" | "previa";
+    farmaco: string;
+    dosis?: string;
+    via?: string;
+    frecuencia?: string;
+  };
+  const [medicacionData, setMedicacionData] = useState<MedicacionItem[]>([]);
+
   // Flags de edición por sección
   const [editingMotivo, setEditingMotivo] = useState(false);
   const [editingEvolucion, setEditingEvolucion] = useState(false);
@@ -345,6 +355,22 @@ export default function ViewEditEPC() {
   const [editingTrat, setEditingTrat] = useState(false);
   const [editingIndAlta, setEditingIndAlta] = useState(false);
   const [editingRecom, setEditingRecom] = useState(false);
+
+  // Modal de Notas al Alta (Recomendaciones)
+  const [notasAltaModalOpen, setNotasAltaModalOpen] = useState(false);
+
+  // Modal de detalle de Laboratorio
+  const [labDetailModal, setLabDetailModal] = useState<{ open: boolean; fecha: string; detalle: string }>({
+    open: false,
+    fecha: "",
+    detalle: ""
+  });
+
+  // Estado para especialidades de interconsultas expandidas
+  const [expandedInterEspecialidades, setExpandedInterEspecialidades] = useState<Set<string>>(new Set());
+
+  // Estado para labs seleccionados para exportación PDF
+  const [selectedLabsForPdf, setSelectedLabsForPdf] = useState<Set<string>>(new Set());
 
   // Guardado / generación
   const [saving, setSaving] = useState(false);
@@ -403,9 +429,69 @@ export default function ViewEditEPC() {
     evolucion: "Evolución",
     procedimientos: "Procedimientos",
     interconsultas: "Interconsultas",
-    tratamiento: "Tratamiento/Medicación",
+    tratamiento: "Plan Terapéutico",
     indicaciones: "Indicaciones de Alta",
-    recomendaciones: "Recomendaciones",
+    recomendaciones: "Recomendaciones al Alta",
+  };
+
+  // Detectar si el paciente falleció (óbito) basado en el texto de evolución
+  const pacienteFallecido = useMemo(() => {
+    const texto = evolucionText.toLowerCase();
+    const palabrasClave = ["óbito", "obito", "falleció", "fallecio", "murió", "murio", "defunción", "defuncion", "fallecimiento", "deceso"];
+    return palabrasClave.some(palabra => texto.includes(palabra));
+  }, [evolucionText]);
+
+  // Función para detectar si un procedimiento es laboratorio
+  const isLaboratorio = (texto: string): boolean => {
+    const lower = texto.toLowerCase();
+
+    // Palabras que indican claramente laboratorio (estudios de sangre/orina)
+    const labKeywords = [
+      // Laboratorio general
+      "laboratorio", "hemograma", "glucemia", "creatinina", "uremia", "ionograma", "hepatograma",
+      "coagulograma", "calcemia", "magnesio", "láctico", "lactico", "ldh", "fosfatemia",
+      "ácido base", "acido base", "gasometría", "gasometria", "colesterol", "calcio",
+      "triglicéridos", "trigliceridos", "uricemia", "bilirrubina", "proteínas",
+      "albúmina", "albumina", "amilasa", "lipasa", "pcr", "vsg", "eritrosedimentación",
+      "ferritina", "transferrina", "vitamina", "hormonas", "tsh", "t3", "t4",
+      // Cultivos y estudios microbiológicos
+      "hisopado", "hemocultivo", "urocultivo", "cultivo",
+      // Estudios específicos
+      "calcio iónico", "calcio ionico", "fósforo", "fosforo",
+      "potasio", "sodio", "cloro", "bicarbonato", "urea", "ácido úrico",
+      "transaminasas", "got", "gpt", "fosfatasa", "ggt", "gamma gt",
+      "tiempo de protrombina", "tppa", "dimero d", "fibrinógeno"
+    ];
+
+    // Palabra que directamente indica laboratorio (match individual)
+    const esLabDirecto = labKeywords.some(kw => lower.includes(kw));
+
+    return esLabDirecto;
+  };
+
+  // Función para parsear procedimiento y extraer fecha/hora y descripción
+  const parseProcedimiento = (linea: string): { fechaHora: string; descripcion: string; tieneHora: boolean } => {
+    // Formato con hora: "DD/MM/YYYY HH:MM - Descripción"
+    const matchConHora = linea.match(/^(\d{1,2}\/\d{1,2}\/\d{4})\s+(\d{1,2}:\d{2})\s*-\s*(.+)$/);
+    if (matchConHora) {
+      return {
+        fechaHora: `${matchConHora[1]} ${matchConHora[2]}`,
+        descripcion: matchConHora[3],
+        tieneHora: true
+      };
+    }
+
+    // Formato solo fecha: "DD/MM/YYYY - Descripción"
+    const matchSoloFecha = linea.match(/^(\d{1,2}\/\d{1,2}\/\d{4})\s*-\s*(.+)$/);
+    if (matchSoloFecha) {
+      return {
+        fechaHora: matchSoloFecha[1],
+        descripcion: matchSoloFecha[2],
+        tieneHora: false
+      };
+    }
+
+    return { fechaHora: "", descripcion: linea, tieneHora: false };
   };
 
   // Mapa de secciones API a claves internas
@@ -526,8 +612,25 @@ export default function ViewEditEPC() {
       }
       if (!epcData) throw new Error("EPC no encontrado/creado");
 
-      // 2) Contexto completo
-      const { data: ctx } = await api.get<EPCContext>(`/epc/${epcData.id}/context`);
+      // 2) Contexto completo (con manejo de error 404)
+      let ctx: EPCContext | null = null;
+      try {
+        const { data } = await api.get<EPCContext>(`/epc/${epcData.id}/context`);
+        ctx = data;
+      } catch (ctxErr: any) {
+        // Si falla el context, usar datos básicos del EPC
+        console.warn("[ViewEdit] Context fetch failed, using basic EPC data:", ctxErr?.response?.status);
+        ctx = {
+          epc: epcData,
+          patient: undefined,
+          admission: undefined,
+          demographics: undefined,
+          doctors: [],
+          generated: (epcData as any).generated ?? null,
+          history: [],
+          hce: undefined
+        } as unknown as EPCContext;
+      }
 
       setEpc(ctx.epc);
       setPatient(ctx.patient || null);
@@ -660,6 +763,24 @@ export default function ViewEditEPC() {
       setProcedimientosText(arrToMultiline(g?.procedimientos));
       setInterconsultasText(arrToMultiline(g?.interconsultas));
       setTratamientoText(arrToMultiline(g?.medicacion));
+
+      // Guardar datos estructurados de medicación para renderizado separado
+      // PRIORIDAD: usar nuevos campos separados si existen, sino usar legacy
+      const medInternacion = Array.isArray(g?.medicacion_internacion) ? g.medicacion_internacion : [];
+      const medPrevia = Array.isArray(g?.medicacion_previa) ? g.medicacion_previa : [];
+      const medLegacy = Array.isArray(g?.medicacion) ? g.medicacion : [];
+
+      // Si hay medicación en los nuevos campos, usarlos
+      if (medInternacion.length > 0 || medPrevia.length > 0) {
+        const allMeds = [...medInternacion, ...medPrevia].filter((m: any) => m && m.farmaco);
+        setMedicacionData(allMeds);
+      } else if (medLegacy.length > 0) {
+        // Fallback a legacy para EPCs antiguas
+        setMedicacionData(medLegacy.filter((m: any) => m && m.farmaco));
+      } else {
+        setMedicacionData([]);
+      }
+
       setIndicacionesAltaText(arrToMultiline(g?.indicaciones_alta));
       setRecomendacionesText(arrToMultiline(g?.recomendaciones));
       // ====================================================================
@@ -787,6 +908,31 @@ export default function ViewEditEPC() {
       downloadBlob(blob, `epicrisis_${epcId}.pdf`);
     } catch (e: any) {
       setToastErr(e?.response?.data?.detail ?? e?.message ?? "No se pudo descargar.");
+    }
+  }
+
+  // Guardar selección de labs para exportación PDF
+  async function saveLabSelectionToEpc() {
+    if (!epc?.id) return;
+
+    setSaving(true);
+    try {
+      const exportConfig = {
+        selected_labs: Array.from(selectedLabsForPdf),
+        timestamp: new Date().toISOString()
+      };
+
+      // Actualizar EPC con la configuración de exportación
+      await api.patch(`/epc/${epc.id}`, {
+        export_config: exportConfig
+      });
+
+      setToastOk("✅ Selección guardada para exportación PDF");
+      setLabDetailModal({ open: false, fecha: "", detalle: "" });
+    } catch (err: any) {
+      setToastErr(err?.response?.data?.detail ?? err?.message ?? "Error al guardar selección");
+    } finally {
+      setSaving(false);
     }
   }
   // =========================
@@ -1341,7 +1487,70 @@ export default function ViewEditEPC() {
                     onChange={(e) => setEvolucionText(e.target.value)}
                   />
                 ) : (
-                  <div className="gen-text-readonly">{evolucionText.trim() || "—"}</div>
+                  <div className="gen-text-readonly evolucion-content">
+                    {(() => {
+                      const texto = evolucionText.trim();
+                      if (!texto) return "—";
+
+                      // Si paciente falleció, formatear el párrafo del óbito
+                      if (pacienteFallecido) {
+                        const parrafos = texto.split(/\n\n/);
+                        const palabrasObito = ["paciente obitó", "óbito", "obito", "falleció", "fallecio", "murió", "murio", "defunción", "defuncion", "fallecimiento", "deceso"];
+
+                        // Buscar párrafo que mencione el fallecimiento
+                        const idxObito = parrafos.findIndex(p =>
+                          palabrasObito.some(palabra => p.toLowerCase().includes(palabra))
+                        );
+
+                        if (idxObito !== -1) {
+                          const parrafoObito = parrafos[idxObito];
+
+                          // Verificar si ya tiene el formato "PACIENTE OBITÓ - Fecha:"
+                          const yaFormateado = parrafoObito.toLowerCase().includes("paciente obitó");
+
+                          // Extraer fecha y hora del texto
+                          const fechaMatch = parrafoObito.match(/Fecha:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i) ||
+                            parrafoObito.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+                          const horaMatch = parrafoObito.match(/Hora:\s*(\d{1,2}:\d{2})/i) ||
+                            parrafoObito.match(/(\d{1,2}:\d{2})/);
+
+                          const fechaObito = fechaMatch ? fechaMatch[1] : "";
+                          const horaObito = horaMatch ? horaMatch[1] : "";
+
+                          // Limpiar el texto si ya tiene formato
+                          let textoLimpio = parrafoObito;
+                          if (yaFormateado) {
+                            textoLimpio = parrafoObito.replace(/PACIENTE OBITÓ\s*-\s*Fecha:\s*[\d\/]+\s*(Hora:\s*[\d:]+)?\s*\.?\s*/i, "").trim();
+                          }
+
+                          return (
+                            <>
+                              {/* Párrafos antes del óbito */}
+                              {parrafos.slice(0, idxObito).map((p, i) => (
+                                <p key={i}>{p}</p>
+                              ))}
+
+                              {/* Párrafo del óbito con encabezado */}
+                              <div className="obito-section">
+                                <div className="obito-header">
+                                  ⚫ PACIENTE OBITÓ - Fecha: {fechaObito || "no registrada"} {horaObito ? `Hora: ${horaObito}` : ""}
+                                </div>
+                                <p>{textoLimpio || parrafoObito}</p>
+                              </div>
+
+                              {/* Párrafos después del óbito (si hay) */}
+                              {parrafos.slice(idxObito + 1).map((p, i) => (
+                                <p key={i + idxObito + 1}>{p}</p>
+                              ))}
+                            </>
+                          );
+                        }
+                      }
+
+                      // Sin óbito: renderizado normal
+                      return texto;
+                    })()}
+                  </div>
                 )}
               </div>
             </div>
@@ -1439,7 +1648,7 @@ export default function ViewEditEPC() {
               {/* Procedimientos */}
               <div className="gen-block">
                 <div className="gen-header-row">
-                  <div className="gen-key">Procedimientos (un ítem por línea)</div>
+                  <div className="gen-key">Procedimientos</div>
                   <div className="gen-header-actions">
                     <FeedbackButtons section="procedimientos" />
                     {!editingProc && (
@@ -1471,10 +1680,92 @@ export default function ViewEditEPC() {
                     onChange={(e) => setProcedimientosText(e.target.value)}
                   />
                 ) : (
-                  <div className="gen-text-readonly">
-                    {procedimientosText.trim()
-                      ? procedimientosText.split(/\r?\n/).map((t, i) => <div key={i}>• {t}</div>)
-                      : "—"}
+                  <div className="gen-text-readonly procedimientos-list">
+                    {(() => {
+                      const lineas = procedimientosText.trim() ? procedimientosText.split(/\r?\n/).filter(t => t.trim()) : [];
+                      if (!lineas.length) return "—";
+
+                      // Parsear todas las líneas
+                      const parsed = lineas.map(t => {
+                        const { fechaHora, descripcion, tieneHora } = parseProcedimiento(t);
+                        const esLab = isLaboratorio(t);
+                        return { original: t, fechaHora, descripcion, tieneHora, esLab };
+                      });
+
+                      // Función auxiliar para convertir hora a minutos
+                      const horaAMinutos = (hora: string): number => {
+                        const match = hora.match(/(\d{1,2}):(\d{2})/);
+                        if (!match) return -1;
+                        return parseInt(match[1]) * 60 + parseInt(match[2]);
+                      };
+
+                      // Función para obtener clave de agrupación (fecha + bloque de hora)
+                      const getClaveAgrupacion = (fechaHora: string, tieneHora: boolean): string => {
+                        if (!tieneHora) {
+                          // Sin hora: agrupar por fecha
+                          return `${fechaHora}|SIN_HORA`;
+                        }
+                        // Con hora: extraer fecha y hora
+                        const partes = fechaHora.split(' ');
+                        const fecha = partes[0];
+                        const hora = partes[1] || "";
+                        const minutos = horaAMinutos(hora);
+                        // Crear bloque de 3 minutos (0-2, 3-5, 6-8, etc.)
+                        const bloqueMinutos = Math.floor(minutos / 3) * 3;
+                        return `${fecha}|${bloqueMinutos}`;
+                      };
+
+                      // Agrupar TODOS los laboratorios en un solo item
+                      const todosLosLabs: string[] = [];
+                      const otrosItems: typeof parsed = [];
+
+                      parsed.forEach(item => {
+                        if (item.esLab && item.fechaHora) {
+                          todosLosLabs.push(`${item.fechaHora}: ${item.descripcion}`);
+                        } else {
+                          otrosItems.push(item);
+                        }
+                      });
+
+                      // Renderizar items agrupados y no agrupados
+                      const elementos: JSX.Element[] = [];
+                      let keyIdx = 0;
+
+                      // Laboratorios: 1 solo item agrupado sin fecha
+                      if (todosLosLabs.length > 0) {
+                        const detalleCompleto = todosLosLabs.join("\n");
+                        elementos.push(
+                          <div key={`lab-${keyIdx++}`} className="proc-item proc-lab">
+                            • <button
+                              type="button"
+                              className="lab-tag"
+                              onClick={() => setLabDetailModal({
+                                open: true,
+                                fecha: "Durante la internación",
+                                detalle: detalleCompleto
+                              })}
+                            >
+                              Laboratorios realizados ({todosLosLabs.length} {todosLosLabs.length === 1 ? 'estudio' : 'estudios'})
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      // Otros items (procedimientos normales)
+                      otrosItems.forEach((item) => {
+                        const fechaFormateada = item.fechaHora
+                          ? (item.tieneHora ? item.fechaHora : `${item.fechaHora} (hora no registrada)`)
+                          : "";
+
+                        if (item.fechaHora && !item.tieneHora) {
+                          elementos.push(<div key={`proc-${keyIdx++}`}>• {fechaFormateada} - {item.descripcion}</div>);
+                        } else {
+                          elementos.push(<div key={`proc-${keyIdx++}`}>• {item.original}</div>);
+                        }
+                      });
+
+                      return elementos;
+                    })()}
                   </div>
                 )}
               </div>
@@ -1482,7 +1773,7 @@ export default function ViewEditEPC() {
               {/* Interconsultas */}
               <div className="gen-block">
                 <div className="gen-header-row">
-                  <div className="gen-key">Interconsultas (un ítem por línea)</div>
+                  <div className="gen-key">Interconsultas</div>
                   <div className="gen-header-actions">
                     <FeedbackButtons section="interconsultas" />
                     {!editingInter && (
@@ -1514,10 +1805,108 @@ export default function ViewEditEPC() {
                     onChange={(e) => setInterconsultasText(e.target.value)}
                   />
                 ) : (
-                  <div className="gen-text-readonly">
-                    {interconsultasText.trim()
-                      ? interconsultasText.split(/\r?\n/).map((t, i) => <div key={i}>• {t}</div>)
-                      : "—"}
+                  <div className="gen-text-readonly interconsultas-grouped">
+                    {(() => {
+                      const lineas = interconsultasText.trim()
+                        ? interconsultasText.split(/\r?\n/).filter(t => t.trim())
+                        : [];
+
+                      if (!lineas.length) return "—";
+
+                      // Estructura: líneas que empiezan con "•" o sin guión son headers
+                      // líneas que empiezan con "-" o "  -" son detalles del header anterior
+                      type InterconsultaGrupo = {
+                        header: string;
+                        detalles: string[];
+                        key: string;
+                      };
+
+                      const grupos: InterconsultaGrupo[] = [];
+                      let currentGrupo: InterconsultaGrupo | null = null;
+
+                      lineas.forEach((linea, idx) => {
+                        const trimmed = linea.trim();
+
+                        // Detectar si es un detalle (empieza con "-" o "•-")
+                        const esDetalle = trimmed.startsWith("-") ||
+                          trimmed.startsWith("•-") ||
+                          trimmed.startsWith("• -") ||
+                          (linea.startsWith("  ") && !trimmed.startsWith("•"));
+
+                        if (esDetalle && currentGrupo) {
+                          // Es un detalle, agregarlo al grupo actual
+                          // Limpiar el guión inicial
+                          let detalleTexto = trimmed.replace(/^[•\s]*-\s*/, "").trim();
+                          currentGrupo.detalles.push(detalleTexto);
+                        } else {
+                          // Es un nuevo header (línea principal)
+                          // Limpiar el bullet point si existe
+                          let headerTexto = trimmed.replace(/^•\s*/, "").trim();
+
+                          currentGrupo = {
+                            header: headerTexto,
+                            detalles: [],
+                            key: `inter-${idx}`
+                          };
+                          grupos.push(currentGrupo);
+                        }
+                      });
+
+                      // Si no hay grupos estructurados, mostrar como lista simple
+                      if (grupos.length === 0) {
+                        return lineas.map((t, i) => <div key={i}>• {t}</div>);
+                      }
+
+                      const toggleGrupo = (key: string) => {
+                        setExpandedInterEspecialidades(prev => {
+                          const newSet = new Set(prev);
+                          if (newSet.has(key)) {
+                            newSet.delete(key);
+                          } else {
+                            newSet.add(key);
+                          }
+                          return newSet;
+                        });
+                      };
+
+                      return (
+                        <div className="inter-tags-container">
+                          {grupos.map(grupo => {
+                            const isExpanded = expandedInterEspecialidades.has(grupo.key);
+                            const tieneDetalles = grupo.detalles.length > 0;
+
+                            return (
+                              <div key={grupo.key} className="inter-especialidad-group">
+                                {tieneDetalles ? (
+                                  <button
+                                    type="button"
+                                    className={`inter-tag ${isExpanded ? 'expanded' : ''}`}
+                                    onClick={() => toggleGrupo(grupo.key)}
+                                  >
+                                    <span className="inter-tag-name">{grupo.header}</span>
+                                    <span className="inter-tag-chevron">{isExpanded ? '▼' : '▶'}</span>
+                                  </button>
+                                ) : (
+                                  <div className="inter-tag inter-tag-simple">
+                                    <span className="inter-tag-name">{grupo.header}</span>
+                                  </div>
+                                )}
+
+                                {isExpanded && tieneDetalles && (
+                                  <div className="inter-detalles">
+                                    {grupo.detalles.map((detalle, idx) => (
+                                      <div key={idx} className="inter-detalle-item">
+                                        <span className="inter-texto">{detalle}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
@@ -1525,7 +1914,7 @@ export default function ViewEditEPC() {
               {/* Tratamiento terapéutico */}
               <div className="gen-block">
                 <div className="gen-header-row">
-                  <div className="gen-key">Tratamiento terapéutico (un ítem por línea)</div>
+                  <div className="gen-key">Plan Terapéutico <span className="section-tag">En Internación</span></div>
                   <div className="gen-header-actions">
                     <FeedbackButtons section="tratamiento" />
                     {!editingTrat && (
@@ -1557,10 +1946,56 @@ export default function ViewEditEPC() {
                     onChange={(e) => setTratamientoText(e.target.value)}
                   />
                 ) : (
-                  <div className="gen-text-readonly">
-                    {tratamientoText.trim()
-                      ? tratamientoText.split(/\r?\n/).map((t, i) => <div key={i}>• {t}</div>)
-                      : "—"}
+                  <div className="gen-text-readonly medicacion-structured">
+                    {medicacionData.length > 0 ? (
+                      <>
+                        {/* Medicación de Internación */}
+                        {medicacionData.filter(m => m.tipo === "internacion").length > 0 && (
+                          <div className="med-section">
+                            <div className="med-section-title">
+                              <span className="med-tag med-tag-internacion">💊 Durante Internación</span>
+                            </div>
+                            <div className="med-list">
+                              {medicacionData
+                                .filter(m => m.tipo === "internacion")
+                                .map((med, i) => (
+                                  <div key={i} className="med-item">
+                                    <span className="med-farmaco">{med.farmaco}</span>
+                                    {med.dosis && <span className="med-dosis">{med.dosis}</span>}
+                                    {med.via && <span className="med-via">{med.via}</span>}
+                                    {med.frecuencia && <span className="med-frecuencia">{med.frecuencia}</span>}
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Medicación Previa */}
+                        {medicacionData.filter(m => m.tipo === "previa").length > 0 && (
+                          <div className="med-section med-section-previa">
+                            <div className="med-section-title">
+                              <span className="med-tag med-tag-previa">📋 Medicación Previa (Antes de Internación)</span>
+                            </div>
+                            <div className="med-list">
+                              {medicacionData
+                                .filter(m => m.tipo === "previa")
+                                .map((med, i) => (
+                                  <div key={i} className="med-item med-item-previa">
+                                    <span className="med-farmaco">{med.farmaco}</span>
+                                    {med.dosis && <span className="med-dosis">{med.dosis}</span>}
+                                    {med.via && <span className="med-via">{med.via}</span>}
+                                    {med.frecuencia && <span className="med-frecuencia">{med.frecuencia}</span>}
+                                  </div>
+                                ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : tratamientoText.trim() ? (
+                      tratamientoText.split(/\r?\n/).map((t, i) => <div key={i}>• {t}</div>)
+                    ) : (
+                      "—"
+                    )}
                   </div>
                 )}
               </div>
@@ -1568,7 +2003,7 @@ export default function ViewEditEPC() {
               {/* Indicaciones de alta */}
               <div className="gen-block">
                 <div className="gen-header-row">
-                  <div className="gen-key">Indicaciones de alta (un ítem por línea)</div>
+                  <div className="gen-key">Indicaciones de alta <span className="section-tag editable">Lo Completa el Médico</span></div>
                   <div className="gen-header-actions">
                     <FeedbackButtons section="indicaciones" />
                     {!editingIndAlta && (
@@ -1591,6 +2026,17 @@ export default function ViewEditEPC() {
                         <FaSave />
                       </button>
                     )}
+                    {/* Botón para abrir modal de Notas al Alta (solo si no falleció) */}
+                    {!pacienteFallecido && (
+                      <button
+                        type="button"
+                        className="icon-btn btn-notas-alta"
+                        title="Ver/Editar Recomendaciones al Alta"
+                        onClick={() => setNotasAltaModalOpen(true)}
+                      >
+                        📝
+                      </button>
+                    )}
                   </div>
                 </div>
                 {editingIndAlta ? (
@@ -1603,49 +2049,6 @@ export default function ViewEditEPC() {
                   <div className="gen-text-readonly">
                     {indicacionesAltaText.trim()
                       ? indicacionesAltaText.split(/\r?\n/).map((t, i) => <div key={i}>• {t}</div>)
-                      : "—"}
-                  </div>
-                )}
-              </div>
-
-              {/* Recomendaciones */}
-              <div className="gen-block">
-                <div className="gen-header-row">
-                  <div className="gen-key">Recomendaciones (un ítem por línea)</div>
-                  <div className="gen-header-actions">
-                    <FeedbackButtons section="recomendaciones" />
-                    {!editingRecom && (
-                      <button
-                        type="button"
-                        className="icon-btn"
-                        title="Editar sección"
-                        onClick={() => setEditingRecom(true)}
-                      >
-                        <FaPen />
-                      </button>
-                    )}
-                    {editingRecom && (
-                      <button
-                        type="button"
-                        className="icon-btn"
-                        title="Confirmar edición de sección"
-                        onClick={() => setEditingRecom(false)}
-                      >
-                        <FaSave />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {editingRecom ? (
-                  <textarea
-                    className="gen-textarea"
-                    value={recomendacionesText}
-                    onChange={(e) => setRecomendacionesText(e.target.value)}
-                  />
-                ) : (
-                  <div className="gen-text-readonly">
-                    {recomendacionesText.trim()
-                      ? recomendacionesText.split(/\r?\n/).map((t, i) => <div key={i}>• {t}</div>)
                       : "—"}
                   </div>
                 )}
@@ -1779,6 +2182,181 @@ export default function ViewEditEPC() {
                 disabled={!feedbackTextValid || !allQuestionsAnswered || submittingFeedback}
               >
                 {submittingFeedback ? "Enviando..." : "Enviar feedback"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Asistente de Indicaciones al Alta */}
+      {notasAltaModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-asistente-alta">
+            <div className="modal-header">
+              <h3>📋 Asistente de Indicaciones al Alta</h3>
+              <button
+                className="modal-close-btn"
+                onClick={() => setNotasAltaModalOpen(false)}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div className="modal-body modal-body-split">
+              {/* Columna izquierda: Sugerencias o mensaje de óbito */}
+              <div className="asistente-sugerencias">
+                {pacienteFallecido ? (
+                  <>
+                    <h4>⚠️ Paciente Fallecido</h4>
+                    <div className="obito-message">
+                      <p>Se detectó que el paciente <strong>falleció durante la internación</strong>.</p>
+                      <p>No corresponden indicaciones de alta para este caso.</p>
+                      <p className="obito-hint">En su lugar, puede documentar:</p>
+                      <ul>
+                        <li>Fecha y hora del óbito</li>
+                        <li>Causa del fallecimiento</li>
+                        <li>Notificaciones realizadas a familiares</li>
+                        <li>Trámites administrativos pendientes</li>
+                      </ul>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h4>💡 Recomendaciones médicas al momento de la externación del paciente que se desprenden de los registros en su HC</h4>
+                    <p className="sugerencias-desc">Haga clic en una sugerencia para agregarla a las indicaciones:</p>
+                    <div className="sugerencias-lista">
+                      {[
+                        "Reposo relativo por 48-72 horas",
+                        "Dieta blanda los primeros días",
+                        "Hidratación abundante (2-3 litros/día)",
+                        "Control de temperatura cada 8 horas",
+                        "Consultar ante fiebre mayor a 38°C",
+                        "Consultar ante dolor intenso no controlado",
+                        "Control ambulatorio en 7 días",
+                        "Control por consultorio externo",
+                        "Continuar medicación habitual",
+                        "Evitar esfuerzos físicos intensos",
+                        "Cuidados de herida quirúrgica",
+                        "Mantener zona limpia y seca",
+                        "No suspender medicación sin indicación médica",
+                        "Acudir a urgencias ante signos de alarma"
+                      ].map((sugerencia, idx) => (
+                        <button
+                          key={idx}
+                          className="sugerencia-item"
+                          onClick={() => {
+                            const bulletPoint = "• " + sugerencia;
+                            const newText = indicacionesAltaText.trim()
+                              ? indicacionesAltaText + "\n" + bulletPoint
+                              : bulletPoint;
+                            setIndicacionesAltaText(newText);
+                          }}
+                        >
+                          + {sugerencia}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Columna derecha: Editor */}
+              <div className="asistente-editor">
+                <h4>📝 Indicaciones al Alta</h4>
+                <p className="editor-desc">Edite o agregue las indicaciones para el paciente:</p>
+                <textarea
+                  className="modal-textarea indicaciones-textarea"
+                  placeholder="Escriba las indicaciones al alta para el paciente..."
+                  value={indicacionesAltaText}
+                  onChange={(e) => setIndicacionesAltaText(e.target.value)}
+                  rows={15}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn ghost"
+                onClick={() => setNotasAltaModalOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn primary"
+                onClick={() => setNotasAltaModalOpen(false)}
+              >
+                <FaSave /> Guardar Indicaciones
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Detalle de Laboratorio */}
+      {labDetailModal.open && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-lab-detalle">
+            <div className="modal-header">
+              <h3>🔬 Laboratorios - Selección para PDF</h3>
+              <button
+                className="modal-close-btn"
+                onClick={() => setLabDetailModal({ open: false, fecha: "", detalle: "" })}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="lab-fecha">
+                <strong>Fecha y hora:</strong> {labDetailModal.fecha}
+              </div>
+              <div className="lab-estudios">
+                <p style={{ marginBottom: "12px", color: "#666" }}>
+                  <strong>Selecciona los estudios para incluir en el PDF:</strong>
+                </p>
+                <div className="lab-estudios-lista" style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {labDetailModal.detalle.split(",").map((estudio, idx) => {
+                    const estudoTrimmed = estudio.trim();
+                    return (
+                      <label key={idx} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedLabsForPdf.has(estudoTrimmed)}
+                          onChange={(e) => {
+                            const newSet = new Set(selectedLabsForPdf);
+                            if (e.target.checked) {
+                              newSet.add(estudoTrimmed);
+                            } else {
+                              newSet.delete(estudoTrimmed);
+                            }
+                            setSelectedLabsForPdf(newSet);
+                          }}
+                          style={{ cursor: "pointer" }}
+                        />
+                        <span>{estudoTrimmed}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <div style={{ marginTop: "16px", padding: "12px", backgroundColor: "#f0f9ff", borderRadius: "6px" }}>
+                  <small style={{ color: "#0369a1" }}>
+                    💡 <strong>Tip:</strong> Si no seleccionas ningún estudio, el PDF mostrará solo "Laboratorios realizados (X estudios)".
+                    Si seleccionas algunos, se exportarán con detalle.
+                  </small>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn ghost"
+                onClick={() => setLabDetailModal({ open: false, fecha: "", detalle: "" })}
+              >
+                Cancelar
+              </button>
+              <button
+                className="btn primary"
+                onClick={saveLabSelectionToEpc}
+                disabled={saving}
+              >
+                {saving ? "Guardando..." : "✅ Aplicar selección"}
               </button>
             </div>
           </div>

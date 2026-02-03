@@ -8,9 +8,15 @@ export default defineConfig({
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
   server: {
-    host: 'localhost',
+    host: '0.0.0.0', // Bind to all interfaces
     port: 5173,
     strictPort: true,
-    hmr: { protocol: 'ws', host: 'localhost', port: 5173 },
+    hmr: {
+      protocol: 'ws',
+      host: '144.217.241.183',
+      clientPort: 5173,
+    },
+    allowedHosts: ['all'],
+    cors: true,
   },
 })
