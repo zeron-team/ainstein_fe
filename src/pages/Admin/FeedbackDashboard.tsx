@@ -21,6 +21,7 @@ import {
     FaComment,
     FaSortAmountDown,
     FaSortAmountUpAlt,
+    FaInfoCircle,
 } from "react-icons/fa";
 
 import "./FeedbackDashboard.css";
@@ -122,6 +123,14 @@ interface Problem {
     examples: string[];
 }
 
+// Tipo para reglas con estado
+interface RuleWithStatus {
+    text: string;
+    status: "detected" | "pending" | "applied" | "resolved";
+    section?: string;
+    detected_at?: string;
+}
+
 interface SectionLearning {
     key: string;
     name: string;
@@ -134,7 +143,7 @@ interface SectionLearning {
         negative_pct: number;
     };
     problems: Problem[];
-    rules: string[];
+    rules: RuleWithStatus[] | string[];  // Soporta ambos formatos para compatibilidad
     summary: string;
     questions_stats?: {
         omissions: number;
@@ -240,6 +249,35 @@ export default function FeedbackDashboard() {
 
     // Estado para ordenamiento en tab "Por EPC"
     const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+    // Estado para modal de información de métricas
+    const [infoModal, setInfoModal] = useState<{ open: boolean; title: string; content: string }>({
+        open: false,
+        title: "",
+        content: ""
+    });
+
+    const openInfoModal = (type: "ok" | "partial" | "bad" | "total") => {
+        const infos = {
+            ok: {
+                title: "✅ OK - Feedback Positivo",
+                content: "Indica que el usuario aceptó la sección generada por la IA sin necesidad de modificaciones significativas.\n\n• La IA generó contenido correcto\n• El usuario validó que está bien\n• No requirió edición"
+            },
+            partial: {
+                title: "🟡 Parcial - Con Modificaciones",
+                content: "Indica que el usuario hizo modificaciones menores a la sección generada.\n\n• La IA generó contenido aceptable\n• El usuario ajustó algunos detalles\n• La base estaba correcta pero necesitó refinamiento"
+            },
+            bad: {
+                title: "❌ Mal - Feedback Negativo",
+                content: "Indica que el usuario considera que la sección generada fue incorrecta o insatisfactoria.\n\n• La IA generó contenido inadecuado\n• El usuario tuvo que reescribir significativamente\n• Identifica áreas de mejora del modelo"
+            },
+            total: {
+                title: "📊 Total de Feedbacks",
+                content: "Suma de todos los feedbacks registrados (OK + Parcial + Mal).\n\n• Cada evaluación de sección cuenta como 1 feedback\n• Un EPC puede tener múltiples feedbacks (uno por sección)\n• Representa el volumen total de datos de entrenamiento"
+            }
+        };
+        setInfoModal({ open: true, ...infos[type] });
+    };
 
     function toggleTextExpand(key: string) {
         setExpandedTexts(prev => {
@@ -404,6 +442,9 @@ export default function FeedbackDashboard() {
                     {/* Cards de resumen */}
                     <div className="fb-summary-grid">
                         <div className="fb-card fb-card-ok">
+                            <div className="fb-card-info-icon" onClick={() => openInfoModal("ok")}>
+                                <FaInfoCircle />
+                            </div>
                             <div className="fb-card-icon"><FaThumbsUp /></div>
                             <div className="fb-card-data">
                                 <div className="fb-card-value">{summary.ok}</div>
@@ -411,6 +452,9 @@ export default function FeedbackDashboard() {
                             </div>
                         </div>
                         <div className="fb-card fb-card-partial">
+                            <div className="fb-card-info-icon" onClick={() => openInfoModal("partial")}>
+                                <FaInfoCircle />
+                            </div>
                             <div className="fb-card-icon"><FaMeh /></div>
                             <div className="fb-card-data">
                                 <div className="fb-card-value">{summary.partial}</div>
@@ -418,6 +462,9 @@ export default function FeedbackDashboard() {
                             </div>
                         </div>
                         <div className="fb-card fb-card-bad">
+                            <div className="fb-card-info-icon" onClick={() => openInfoModal("bad")}>
+                                <FaInfoCircle />
+                            </div>
                             <div className="fb-card-icon"><FaThumbsDown /></div>
                             <div className="fb-card-data">
                                 <div className="fb-card-value">{summary.bad}</div>
@@ -425,6 +472,9 @@ export default function FeedbackDashboard() {
                             </div>
                         </div>
                         <div className="fb-card fb-card-total">
+                            <div className="fb-card-info-icon" onClick={() => openInfoModal("total")}>
+                                <FaInfoCircle />
+                            </div>
                             <div className="fb-card-icon"><FaChartBar /></div>
                             <div className="fb-card-data">
                                 <div className="fb-card-value">{summary.total}</div>
@@ -924,31 +974,94 @@ export default function FeedbackDashboard() {
                                             </div>
                                         )}
 
-                                        {/* Reglas para prompt de IA - COLAPSABLE */}
-                                        {section.rules && section.rules.length > 0 && (
-                                            <div className="fb-collapsible-section">
-                                                <button
-                                                    className="fb-collapsible-header rules"
-                                                    onClick={() => toggleLearningSection(section.key, "rules")}
-                                                >
-                                                    <span className="fb-collapsible-title">
-                                                        <FaLightbulb /> Reglas para IA ({section.rules.length})
-                                                    </span>
-                                                    {expandedLearningSections.has(`${section.key}_rules`)
-                                                        ? <FaChevronDown className="fb-chevron" />
-                                                        : <FaChevronRight className="fb-chevron" />}
-                                                </button>
-                                                {expandedLearningSections.has(`${section.key}_rules`) && (
-                                                    <div className="fb-collapsible-content">
-                                                        <ol className="fb-rules-list">
-                                                            {section.rules.map((rule, i) => (
-                                                                <li key={i}>{rule}</li>
-                                                            ))}
-                                                        </ol>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
+                                        {/* Reglas para IA - Separadas por estado */}
+                                        {section.rules && section.rules.length > 0 && (() => {
+                                            // Agrupar reglas por estado
+                                            const pendingRules = section.rules.filter(rule => {
+                                                const status = typeof rule === 'string' ? 'pending' : rule.status;
+                                                return status === 'detected' || status === 'pending';
+                                            });
+                                            const processedRules = section.rules.filter(rule => {
+                                                const status = typeof rule === 'string' ? 'pending' : rule.status;
+                                                return status === 'applied' || status === 'resolved';
+                                            });
+
+                                            return (
+                                                <>
+                                                    {/* Reglas Pendientes */}
+                                                    {pendingRules.length > 0 && (
+                                                        <div className="fb-collapsible-section">
+                                                            <button
+                                                                className="fb-collapsible-header rules pending-header"
+                                                                onClick={() => toggleLearningSection(section.key, "rules")}
+                                                            >
+                                                                <span className="fb-collapsible-title pending-title">
+                                                                    <FaExclamationTriangle /> Reglas Pendientes ({pendingRules.length})
+                                                                </span>
+                                                                {expandedLearningSections.has(`${section.key}_rules`)
+                                                                    ? <FaChevronDown className="fb-chevron" />
+                                                                    : <FaChevronRight className="fb-chevron" />}
+                                                            </button>
+                                                            {expandedLearningSections.has(`${section.key}_rules`) && (
+                                                                <div className="fb-collapsible-content">
+                                                                    <ul className="fb-rules-list">
+                                                                        {pendingRules.map((rule, i) => {
+                                                                            const ruleText = typeof rule === 'string' ? rule : rule.text;
+                                                                            const ruleStatus = typeof rule === 'string' ? 'pending' : rule.status;
+                                                                            return (
+                                                                                <li key={i} className={`fb-rule-item ${ruleStatus}`}>
+                                                                                    <span className="fb-rule-icon" title={ruleStatus === 'detected' ? 'Recién detectado' : 'Pendiente de aplicar'}>
+                                                                                        {ruleStatus === 'detected' && <FaExclamationTriangle />}
+                                                                                        {ruleStatus === 'pending' && <FaComment />}
+                                                                                    </span>
+                                                                                    <span className="fb-rule-text">{ruleText}</span>
+                                                                                </li>
+                                                                            );
+                                                                        })}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Reglas Procesadas (Histórico) */}
+                                                    {processedRules.length > 0 && (
+                                                        <div className="fb-collapsible-section history-section">
+                                                            <button
+                                                                className="fb-collapsible-header rules history-header"
+                                                                onClick={() => toggleLearningSection(`${section.key}_history`, "rules")}
+                                                            >
+                                                                <span className="fb-collapsible-title history-title">
+                                                                    <FaCheckCircle /> Reglas Procesadas - Histórico ({processedRules.length})
+                                                                </span>
+                                                                {expandedLearningSections.has(`${section.key}_history_rules`)
+                                                                    ? <FaChevronDown className="fb-chevron" />
+                                                                    : <FaChevronRight className="fb-chevron" />}
+                                                            </button>
+                                                            {expandedLearningSections.has(`${section.key}_history_rules`) && (
+                                                                <div className="fb-collapsible-content history-content">
+                                                                    <ul className="fb-rules-list">
+                                                                        {processedRules.map((rule, i) => {
+                                                                            const ruleText = typeof rule === 'string' ? rule : rule.text;
+                                                                            const ruleStatus = typeof rule === 'string' ? 'applied' : rule.status;
+                                                                            return (
+                                                                                <li key={i} className={`fb-rule-item ${ruleStatus}`}>
+                                                                                    <span className="fb-rule-icon" title={ruleStatus === 'applied' ? 'Ya procesada' : 'Problema resuelto'}>
+                                                                                        {ruleStatus === 'applied' && <FaCheck />}
+                                                                                        {ruleStatus === 'resolved' && <FaCheckCircle />}
+                                                                                    </span>
+                                                                                    <span className="fb-rule-text">{ruleText}</span>
+                                                                                </li>
+                                                                            );
+                                                                        })}
+                                                                    </ul>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
 
                                         {/* Sin problemas */}
                                         {(!section.problems || section.problems.length === 0) && section.stats.ok_pct > 70 && (
@@ -1119,6 +1232,25 @@ export default function FeedbackDashboard() {
                             )}
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Modal de información de métricas */}
+            {infoModal.open && (
+                <div className="fb-info-modal-overlay" onClick={() => setInfoModal({ ...infoModal, open: false })}>
+                    <div className="fb-info-modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="fb-info-modal-header">
+                            <h3>{infoModal.title}</h3>
+                            <button className="fb-info-modal-close" onClick={() => setInfoModal({ ...infoModal, open: false })}>
+                                <FaTimes />
+                            </button>
+                        </div>
+                        <div className="fb-info-modal-content">
+                            {infoModal.content.split('\n').map((line, i) => (
+                                <p key={i}>{line}</p>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

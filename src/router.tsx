@@ -8,6 +8,7 @@ import PrivateRoute from "@/auth/PrivateRoute";
 import PublicRoute from "@/auth/PublicRoute";
 
 import Login from "@/pages/Login";
+import Welcome from "@/pages/Welcome";
 import Dashboard from "@/pages/Dashboard";
 import PatientsList from "@/pages/Patients/List";
 import PatientForm from "@/pages/Patients/Form";
@@ -36,7 +37,8 @@ const router = createBrowserRouter([
       {
         element: <PrivateRoute />, // ✅ todo lo de adentro requiere token
         children: [
-          { index: true, element: <Dashboard /> },
+          { index: true, element: <Welcome /> },
+          { path: "dashboard", element: <Dashboard /> },
 
           { path: "patients", element: <PatientsList /> },
           { path: "patients/new", element: <PatientForm /> },

@@ -1046,6 +1046,95 @@ export default function TenantManager() {
                             </div>
                         )}
 
+                        {/* DISPLAY RULES - Configure which HCE sections to show/hide */}
+                        <div className="form-section">
+                            <h4>👁️ Reglas de Visualización</h4>
+                            <p className="hint">
+                                Seleccione las secciones de HCE que desea <strong>ocultar</strong> para este tenant.
+                                <br /><small style={{ color: "#888" }}>Basado en análisis de 120 HCE (98.445 registros, 61.873 procedimientos)</small>
+                            </p>
+
+                            {/* TIPOS DE REGISTRO */}
+                            <h5 style={{ marginTop: "1rem", marginBottom: "0.5rem", color: "#666" }}>📋 Tipos de Registro</h5>
+                            <div className="scopes-grid">
+                                {[
+                                    { id: "indicacion", name: "Indicaciones", desc: "Indicaciones médicas (62.013)" },
+                                    { id: "hoja_enfermeria", name: "Hoja de Enfermería", desc: "Hojas enfermería (16.128)" },
+                                    { id: "balance_hidroelectrolitico", name: "Balance Hidroelectrolítico", desc: "Balance fluidos (13.662)" },
+                                    { id: "evolucion_medica", name: "Evolución Médica", desc: "Evolución a cargo (2.103)" },
+                                    { id: "control_enfermeria", name: "Control de Enfermería", desc: "Controles enfermería (1.360)" },
+                                    { id: "evolucion_interconsulta", name: "Evolución Interconsulta", desc: "Interconsultas (1.358)" },
+                                    { id: "evolucion_kinesiologia", name: "Evolución Kinesiología", desc: "Kinesiología UCI/Int (746)" },
+                                    { id: "evolucion_hemoterapia", name: "Evolución Hemoterapia", desc: "Hemoterapia (170)" },
+                                    { id: "resumen_internacion", name: "Resumen Internación", desc: "Resúmenes (128)" },
+                                    { id: "epicrisis", name: "Epicrisis HIS", desc: "Epicrisis origen (125)" },
+                                    { id: "ingreso_paciente", name: "Ingreso de Paciente", desc: "Registros ingreso (106)" },
+                                    { id: "parte_quirurgico", name: "Parte Quirúrgico", desc: "Partes quirúrgicos (83)" },
+                                    { id: "checklist_quirofano", name: "Checklist Quirófano", desc: "Entrada/pausa/salida (195)" },
+                                    { id: "monitoreo_quirurgico", name: "Monitoreo Quirúrgico", desc: "Durante cirugía (62)" },
+                                    { id: "evolucion_emergencia", name: "Evolución Emergencia", desc: "Emergencias (40)" },
+                                    { id: "evolucion_fonoaudiologia", name: "Evolución Fonoaudiología", desc: "Fonoaudiología (37)" },
+                                    { id: "protocolo_dialisis", name: "Protocolo de Diálisis", desc: "Diálisis (9)" },
+                                ].map((section) => {
+                                    const excludedSections = editConfig.excluded_sections || [];
+                                    const isExcluded = excludedSections.includes(section.id);
+                                    return (
+                                        <label key={section.id} className="scope-checkbox" title={section.desc}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isExcluded}
+                                                onChange={(e) => {
+                                                    const newExcluded = e.target.checked
+                                                        ? [...excludedSections, section.id]
+                                                        : excludedSections.filter((s: string) => s !== section.id);
+                                                    setEditConfig({ ...editConfig, excluded_sections: newExcluded });
+                                                }}
+                                            />
+                                            <span>🚫 {section.name}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+
+                            {/* CATEGORÍAS DE PROCEDIMIENTOS */}
+                            <h5 style={{ marginTop: "1.5rem", marginBottom: "0.5rem", color: "#666" }}>💊 Categorías de Procedimientos</h5>
+                            <div className="scopes-grid">
+                                {[
+                                    { id: "control", name: "Controles Rutinarios", desc: "Signos vitales, glucemia (16.449)" },
+                                    { id: "enfermeria", name: "Proc. Enfermería", desc: "Cambios posición, decúbito (14.164)" },
+                                    { id: "otro", name: "Otros", desc: "Tendido cama, cambio hab. (11.444)" },
+                                    { id: "laboratorio", name: "Laboratorio", desc: "Hemograma, PCR (4.647)" },
+                                    { id: "higiene", name: "Higiene y Confort", desc: "Baño, cambio pañal (4.355)" },
+                                    { id: "valoracion", name: "Valoraciones", desc: "Tolerancia oral, fluido (3.671)" },
+                                    { id: "medicacion_admin", name: "Admin. Medicación", desc: "VO, SNG, tópica (3.250)" },
+                                    { id: "imagen", name: "Imágenes", desc: "RX, TAC (965)" },
+                                    { id: "tratamiento", name: "Tratamientos", desc: "Curaciones, transfusiones (855)" },
+                                    { id: "valoracion_clinica", name: "Escalas Clínicas", desc: "Morse, RASS, Glasgow (836)" },
+                                    { id: "interconsulta", name: "Interconsultas", desc: "Cardiología, psiquiatría (624)" },
+                                    { id: "quirurgico", name: "Proc. Quirúrgicos", desc: "Drenajes, paracentesis (394)" },
+                                    { id: "estudio", name: "Estudios Diagnósticos", desc: "Biopsias, holter (219)" },
+                                ].map((section) => {
+                                    const excludedSections = editConfig.excluded_sections || [];
+                                    const isExcluded = excludedSections.includes(section.id);
+                                    return (
+                                        <label key={section.id} className="scope-checkbox" title={section.desc}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isExcluded}
+                                                onChange={(e) => {
+                                                    const newExcluded = e.target.checked
+                                                        ? [...excludedSections, section.id]
+                                                        : excludedSections.filter((s: string) => s !== section.id);
+                                                    setEditConfig({ ...editConfig, excluded_sections: newExcluded });
+                                                }}
+                                            />
+                                            <span>🚫 {section.name}</span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                         {/* General */}
                         <div className="form-section">
                             <h4>⚙️ Configuración General</h4>

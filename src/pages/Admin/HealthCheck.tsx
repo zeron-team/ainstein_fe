@@ -80,10 +80,10 @@ const SERVICE_CONFIG: Record<string, { label: string; icon: JSX.Element; descrip
         description: "gemini-2.0-flash",
         category: "Servicios IA",
     },
-    langchain: {
-        label: "LangChain",
+    llamaindex: {
+        label: "LlamaIndex",
         icon: <FaBrain />,
-        description: "Orquestación IA + RAG",
+        description: "Orquestación IA + RAG (v4)",
         category: "Servicios IA",
     },
     ainstein_ws: {
@@ -263,7 +263,7 @@ export default function HealthCheck() {
                                     <div className="hc-svc-label">Google AI</div>
                                     <ul>
                                         <li>gemini-2.0-flash</li>
-                                        <li>LangChain orchestration</li>
+                                        <li>LlamaIndex orchestration</li>
                                         <li>EPC generation</li>
                                     </ul>
                                 </div>
@@ -532,7 +532,7 @@ export default function HealthCheck() {
                     </div>
                 </div>
                 <div className="hc-header-right">
-                    <span className="hc-env-badge">{health ? health.environment.toUpperCase() : "..."}</span>
+                    <span className="hc-env-badge">{health?.environment?.toUpperCase() || "..."}</span>
                     <button className="hc-btn hc-btn-refresh" onClick={loadHealth} disabled={refreshing}>
                         <FaSync className={refreshing ? "spinning" : ""} />
                         {refreshing ? "Verificando..." : "Actualizar"}

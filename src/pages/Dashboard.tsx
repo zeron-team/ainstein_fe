@@ -174,21 +174,7 @@ const Dashboard: React.FC = () => {
             subtitle={`${derivadas.ocupacionPct.toFixed(1)}% de ocupación`}
             variant="warning"
             trend="flat"
-            trendLabel={`${derivadas.internacion} en cama`}
-          />
-
-          <KPI
-            label="Falta EPC"
-            value={derivadas.falta}
-            icon={<FaClock />}
-            subtitle={`${derivadas.pendientesPct.toFixed(1)}% de la cohorte`}
-            variant="neutral"
-            trend={derivadas.falta > 0 ? "down" : "flat"}
-            trendLabel={
-              derivadas.falta > 0
-                ? "Objetivo: reducir pendientes"
-                : "Sin pendientes"
-            }
+            trendLabel={derivadas.internacion > 0 ? `${derivadas.internacion} en cama` : "Sin internados"}
           />
 
           <KPI
@@ -199,15 +185,6 @@ const Dashboard: React.FC = () => {
             variant="success"
             trend="up"
             trendLabel={`${derivadas.generada} con Epicrisis`}
-          />
-
-          <KPI
-            label="Altas"
-            value={derivadas.alta}
-            icon={<FaCheckCircle />}
-            subtitle="Pacientes con alta definitiva."
-            variant="primary"
-            trend="flat"
           />
 
           <KPI

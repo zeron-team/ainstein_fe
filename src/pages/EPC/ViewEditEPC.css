@@ -1365,28 +1365,21 @@ textarea.gen-textarea:focus {
   line-height: 1.6;
 }
 
-.evolucion-content .obito-section {
+.evolucion-content .obito-inline {
   margin-top: 16px;
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.06), rgba(15, 23, 42, 0.03));
-  border: 1px solid rgba(30, 41, 59, 0.25);
-  border-left: 4px solid #1e293b;
-  border-radius: var(--radius-md);
 }
 
-.evolucion-content .obito-header {
+.evolucion-content .obito-divider {
+  border: none;
+  border-top: 2px solid #1e293b;
+  margin: 0 0 10px 0;
+}
+
+.evolucion-content .obito-text {
   font-size: 15px;
   font-weight: 700;
   color: #1e293b;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(30, 41, 59, 0.15);
-}
-
-.evolucion-content .obito-section p {
-  margin: 0;
-  color: var(--text);
-  font-style: italic;
+  display: block;
 }
 
 /* ===========================================
@@ -1526,4 +1519,147 @@ textarea.gen-textarea:focus {
   font-size: 13px;
   color: var(--text);
   line-height: 1.5;
+}
+
+/* ========== OTROS DATOS DE INTERÉS ========== */
+.otros-datos-interes {
+  margin-top: 24px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(2, 132, 199, 0.04), rgba(79, 70, 229, 0.02));
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.otros-datos-interes h4 {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.otros-datos-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-otros-datos {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.btn-otros-datos:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.btn-otros-datos .btn-icon {
+  font-size: 18px;
+}
+
+.btn-otros-datos .btn-label {
+  font-weight: 600;
+}
+
+.btn-farmacologia {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02));
+}
+
+.btn-farmacologia:hover {
+  border-color: rgba(16, 185, 129, 0.6);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.05));
+}
+
+.btn-laboratorio {
+  border-color: rgba(99, 102, 241, 0.3);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(99, 102, 241, 0.02));
+}
+
+.btn-laboratorio:hover {
+  border-color: rgba(99, 102, 241, 0.6);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(99, 102, 241, 0.05));
+}
+
+/* Modal Farmacología */
+.modal-farmacologia {
+  max-width: 650px;
+}
+
+.modal-farmacologia .modal-header h3 {
+  color: #10b981;
+}
+
+.farmacologia-content {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+/* Modal Laboratorio */
+.modal-laboratorio {
+  max-width: 700px;
+}
+
+.modal-laboratorio .modal-header h3 {
+  color: #6366f1;
+}
+
+.laboratorio-content {
+  max-height: 450px;
+  overflow-y: auto;
+}
+
+.lab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lab-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid rgba(99, 102, 241, 0.5);
+}
+
+.lab-fecha {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  min-width: 120px;
+}
+
+.lab-desc {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.med-list-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text);
 }

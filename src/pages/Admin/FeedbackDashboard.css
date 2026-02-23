@@ -57,6 +57,25 @@
     display: flex;
     align-items: center;
     gap: 16px;
+    position: relative;
+}
+
+/* Ícono de información en esquina superior derecha */
+.fb-card-info-icon {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 14px;
+    color: var(--muted);
+    opacity: 0.5;
+    cursor: help;
+    transition: all 0.2s ease;
+}
+
+.fb-card-info-icon:hover {
+    opacity: 1;
+    color: var(--primary);
+    transform: scale(1.2);
 }
 
 .fb-card-icon {
@@ -2070,4 +2089,296 @@
     font-size: 11px;
     color: #475569;
     border-left: 3px solid #16a34a;
+}
+
+/* ===================== REGLAS CON ESTADO ===================== */
+/* Leyenda de estados de reglas */
+.fb-rules-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    background: rgba(248, 250, 252, 0.8);
+    border-radius: 8px;
+    border: 1px dashed rgba(148, 163, 184, 0.3);
+}
+
+.fb-rule-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+}
+
+.fb-rule-legend-item.detected {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.25);
+}
+
+.fb-rule-legend-item.pending {
+    background: rgba(217, 119, 6, 0.1);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+.fb-rule-legend-item.applied {
+    background: rgba(2, 132, 199, 0.1);
+    color: #0284c7;
+    border: 1px solid rgba(2, 132, 199, 0.25);
+}
+
+.fb-rule-legend-item.resolved {
+    background: rgba(22, 163, 74, 0.1);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.25);
+}
+
+/* Lista de reglas actualizada */
+.fb-rules-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* Items de regla individual */
+.fb-rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.5;
+    transition: all 0.2s ease;
+}
+
+.fb-rule-item:last-child {
+    margin-bottom: 0;
+}
+
+/* Estilos por estado */
+.fb-rule-item.detected {
+    background: rgba(220, 38, 38, 0.08);
+    border-left: 4px solid #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    border-left-width: 4px;
+}
+
+.fb-rule-item.pending {
+    background: rgba(217, 119, 6, 0.08);
+    border-left: 4px solid #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.2);
+    border-left-width: 4px;
+}
+
+.fb-rule-item.applied {
+    background: rgba(2, 132, 199, 0.08);
+    border-left: 4px solid #0284c7;
+    border: 1px solid rgba(2, 132, 199, 0.2);
+    border-left-width: 4px;
+}
+
+.fb-rule-item.resolved {
+    background: rgba(22, 163, 74, 0.08);
+    border-left: 4px solid #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.2);
+    border-left-width: 4px;
+}
+
+/* Icono de regla */
+.fb-rule-icon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 12px;
+}
+
+.fb-rule-item.detected .fb-rule-icon {
+    background: rgba(220, 38, 38, 0.2);
+    color: #dc2626;
+}
+
+.fb-rule-item.pending .fb-rule-icon {
+    background: rgba(217, 119, 6, 0.2);
+    color: #d97706;
+}
+
+.fb-rule-item.applied .fb-rule-icon {
+    background: rgba(2, 132, 199, 0.2);
+    color: #0284c7;
+}
+
+.fb-rule-item.resolved .fb-rule-icon {
+    background: rgba(22, 163, 74, 0.2);
+    color: #16a34a;
+}
+
+/* Texto de regla */
+.fb-rule-text {
+    flex: 1;
+    color: #334155;
+}
+
+.fb-rule-item.detected .fb-rule-text {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.fb-rule-item.resolved .fb-rule-text {
+    color: #64748b;
+    font-style: italic;
+}
+
+/* ===================== SECCIONES PENDIENTES vs HISTÓRICO ===================== */
+/* Sección de reglas pendientes */
+.fb-collapsible-header.pending-header {
+    background: rgba(217, 119, 6, 0.1);
+    border: 1px solid rgba(217, 119, 6, 0.25);
+}
+
+.fb-collapsible-header.pending-header:hover {
+    background: rgba(217, 119, 6, 0.15);
+}
+
+.pending-title {
+    color: #d97706 !important;
+}
+
+.pending-title svg {
+    color: #d97706;
+}
+
+/* Sección de reglas históricas (procesadas) */
+.history-section {
+    opacity: 0.85;
+}
+
+.fb-collapsible-header.history-header {
+    background: rgba(22, 163, 74, 0.08);
+    border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+.fb-collapsible-header.history-header:hover {
+    background: rgba(22, 163, 74, 0.12);
+}
+
+.history-title {
+    color: #16a34a !important;
+}
+
+.history-title svg {
+    color: #16a34a;
+}
+
+.history-content {
+    background: rgba(248, 250, 252, 0.9);
+}
+
+.history-content .fb-rule-item {
+    opacity: 0.9;
+}
+
+/* ===================== MODAL DE INFORMACIÓN ===================== */
+.fb-info-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.fb-info-modal {
+    background: var(--card, #fff);
+    border-radius: 12px;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    animation: slideIn 0.2s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.fb-info-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.fb-info-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.fb-info-modal-close {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--muted, #64748b);
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.fb-info-modal-close:hover {
+    background: var(--error, #dc2626);
+    color: white;
+}
+
+.fb-info-modal-content {
+    padding: 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--foreground, #1e293b);
+}
+
+.fb-info-modal-content p {
+    margin: 0 0 8px 0;
+}
+
+.fb-info-modal-content p:empty {
+    margin: 0;
+}
+
+.fb-info-modal-content p:last-child {
+    margin-bottom: 0;
 }

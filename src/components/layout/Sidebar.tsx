@@ -12,6 +12,7 @@ import {
   FaHeartbeat,
   FaDollarSign,
   FaBuilding,
+  FaHome,
 } from "react-icons/fa";
 import { useAuth } from "@/auth/AuthContext";
 
@@ -34,7 +35,10 @@ export default function Sidebar({ open, onClose }: Props) {
     () => [
       {
         title: "EPC Suite",
-        items: [{ to: "/", icon: <FaTachometerAlt />, label: "Dashboard" }],
+        items: [
+          { to: "/", icon: <FaHome />, label: "Inicio" },
+          { to: "/dashboard", icon: <FaTachometerAlt />, label: "Dashboard" },
+        ],
       },
       {
         title: "Pacientes",

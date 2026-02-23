@@ -72,8 +72,10 @@ type GeneratedData =
     motivo_internacion?: string;
     diagnostico_principal_cie10?: string;
     evolucion?: string;
+    estudios?: any[];  // NUEVA SECCIÓN: TAC, RMN, RX, etc.
     procedimientos?: any[];
     interconsultas?: any[];
+    interconsultas_detalle?: any[];  // Detalle con resúmenes
     medicacion?:
     | {
       farmaco: string;
@@ -331,11 +333,13 @@ export default function ViewEditEPC() {
   // Campos EDITABLES del contenido generado (texto)
   const [motivoText, setMotivoText] = useState("");
   const [evolucionText, setEvolucionText] = useState("");
+  const [estudiosText, setEstudiosText] = useState("");  // NUEVA SECCIÓN: TAC, RMN, RX, etc.
   const [procedimientosText, setProcedimientosText] = useState("");
   const [interconsultasText, setInterconsultasText] = useState("");
   const [tratamientoText, setTratamientoText] = useState("");
   const [indicacionesAltaText, setIndicacionesAltaText] = useState("");
   const [recomendacionesText, setRecomendacionesText] = useState("");
+  const [laboratoriosData, setLaboratoriosData] = useState<string[]>([]); // Laboratorios para modal "Otros Datos"
 
   // Datos estructurados de medicación (para separar internación vs previa)
   type MedicacionItem = {
@@ -350,6 +354,7 @@ export default function ViewEditEPC() {
   // Flags de edición por sección
   const [editingMotivo, setEditingMotivo] = useState(false);
   const [editingEvolucion, setEditingEvolucion] = useState(false);
+  const [editingEstudios, setEditingEstudios] = useState(false);  // NUEVA SECCIÓN
   const [editingProc, setEditingProc] = useState(false);
   const [editingInter, setEditingInter] = useState(false);
   const [editingTrat, setEditingTrat] = useState(false);
@@ -365,6 +370,12 @@ export default function ViewEditEPC() {
     fecha: "",
     detalle: ""
   });
+
+  // Modal de Farmacología (Otros Datos de Interés)
+  const [farmacologiaModalOpen, setFarmacologiaModalOpen] = useState(false);
+  // Modal de Laboratorio completo (Otros Datos de Interés)  
+  const [laboratorioModalOpen, setLaboratorioModalOpen] = useState(false);
+
 
   // Estado para especialidades de interconsultas expandidas
   const [expandedInterEspecialidades, setExpandedInterEspecialidades] = useState<Set<string>>(new Set());
@@ -383,11 +394,12 @@ export default function ViewEditEPC() {
 
   // ✅ Feedback de secciones generadas por IA
   type SectionRating = "ok" | "partial" | "bad" | null;
-  type SectionKey = "motivo" | "evolucion" | "procedimientos" | "interconsultas" | "tratamiento" | "indicaciones" | "recomendaciones";
+  type SectionKey = "motivo" | "evolucion" | "estudios" | "procedimientos" | "interconsultas" | "tratamiento" | "indicaciones" | "recomendaciones";
 
   const [sectionRatings, setSectionRatings] = useState<Record<SectionKey, SectionRating>>({
     motivo: null,
     evolucion: null,
+    estudios: null,  // NUEVA SECCIÓN
     procedimientos: null,
     interconsultas: null,
     tratamiento: null,
@@ -427,6 +439,7 @@ export default function ViewEditEPC() {
   const sectionLabels: Record<SectionKey, string> = {
     motivo: "Motivo de Internación",
     evolucion: "Evolución",
+    estudios: "Estudios",  // NUEVA SECCIÓN
     procedimientos: "Procedimientos",
     interconsultas: "Interconsultas",
     tratamiento: "Plan Terapéutico",
@@ -498,6 +511,7 @@ export default function ViewEditEPC() {
   const apiToSectionKey: Record<string, SectionKey> = {
     motivo_internacion: "motivo",
     evolucion: "evolucion",
+    estudios: "estudios",
     procedimientos: "procedimientos",
     interconsultas: "interconsultas",
     medicacion: "tratamiento",
@@ -505,9 +519,16 @@ export default function ViewEditEPC() {
     recomendaciones: "recomendaciones",
   };
 
-  // Función para obtener secciones sin evaluar
+  // Secciones evaluables: siempre las 5 secciones generadas por IA
+  // indicaciones, tratamiento y recomendaciones NO se evalúan (las completa el médico)
+  function getVisibleSections(): SectionKey[] {
+    return ["motivo", "evolucion", "estudios", "procedimientos", "interconsultas"];
+  }
+
+  // Función para obtener secciones sin evaluar (solo las visibles)
   function getUnratedSections(): string[] {
-    return (Object.keys(sectionRatings) as SectionKey[])
+    const visible = getVisibleSections();
+    return visible
       .filter((key) => sectionRatings[key] === null)
       .map((key) => sectionLabels[key]);
   }
@@ -530,27 +551,29 @@ export default function ViewEditEPC() {
         evaluator_name: data.evaluator_name,
       });
 
-      if (data.has_previous && data.sections) {
-        // Rellenar sectionRatings con los valores previos
-        const newRatings: Record<SectionKey, SectionRating> = {
-          motivo: null,
-          evolucion: null,
-          procedimientos: null,
-          interconsultas: null,
-          tratamiento: null,
-          indicaciones: null,
-          recomendaciones: null,
-        };
+      // SIEMPRE resetear ratings primero
+      const cleanRatings: Record<SectionKey, SectionRating> = {
+        motivo: null,
+        evolucion: null,
+        estudios: null,
+        procedimientos: null,
+        interconsultas: null,
+        tratamiento: null,
+        indicaciones: null,
+        recomendaciones: null,
+      };
 
+      if (data.has_previous && data.sections) {
+        // Rellenar SOLO con los valores del usuario actual
         for (const [apiSection, sectionData] of Object.entries(data.sections)) {
           const sectionKey = apiToSectionKey[apiSection];
           if (sectionKey && sectionData.rating) {
-            newRatings[sectionKey] = sectionData.rating as SectionRating;
+            cleanRatings[sectionKey] = sectionData.rating as SectionRating;
           }
         }
-
-        setSectionRatings(newRatings);
       }
+
+      setSectionRatings(cleanRatings);
     } catch (e) {
       console.error("Error cargando evaluación previa:", e);
     } finally {
@@ -565,9 +588,20 @@ export default function ViewEditEPC() {
       setEvaluationMode(true);
       await loadMyPreviousFeedback();
     } else {
-      // Saliendo del modo evaluación
+      // Saliendo del modo evaluación - limpiar TODO
       setEvaluationMode(false);
       setEvalValidationError(null);
+      setPreviousEvaluation(null);
+      setSectionRatings({
+        motivo: null,
+        evolucion: null,
+        estudios: null,
+        procedimientos: null,
+        interconsultas: null,
+        tratamiento: null,
+        indicaciones: null,
+        recomendaciones: null,
+      });
     }
   }
 
@@ -575,11 +609,25 @@ export default function ViewEditEPC() {
   async function saveEvaluation() {
     const unrated = getUnratedSections();
     if (unrated.length > 0) {
-      setEvalValidationError(`Debes evaluar TODAS las secciones. Faltan: ${unrated.join(", ")}`);
+      setEvalValidationError(`Debes evaluar TODAS las secciones visibles. Faltan: ${unrated.join(", ")}`);
       return;
     }
     setEvalValidationError(null);
-    setToastOk("Evaluación guardada correctamente");
+
+    // Enviar cada sección evaluada al API
+    try {
+      const visible = getVisibleSections();
+      for (const section of visible) {
+        const rating = sectionRatings[section];
+        if (rating) {
+          await submitFeedbackToApi(section, rating, "");
+        }
+      }
+      setToastOk("Evaluación guardada correctamente.");
+    } catch (err) {
+      console.error("Error guardando evaluación:", err);
+      setToastErr("Error al guardar la evaluación.");
+    }
     setEvaluationMode(false);
   }
 
@@ -760,9 +808,13 @@ export default function ViewEditEPC() {
 
       setMotivoText(g?.motivo_internacion || "");
       setEvolucionText(g?.evolucion || "");
+      setEstudiosText(arrToMultiline(g?.estudios));  // NUEVA SECCIÓN: TAC, RMN, RX, etc.
       setProcedimientosText(arrToMultiline(g?.procedimientos));
       setInterconsultasText(arrToMultiline(g?.interconsultas));
       setTratamientoText(arrToMultiline(g?.medicacion));
+
+      // Cargar laboratorios individuales para el modal "Otros Datos de Interés"
+      setLaboratoriosData(Array.isArray(g?.laboratorios_detalle) ? g.laboratorios_detalle : []);
 
       // Guardar datos estructurados de medicación para renderizado separado
       // PRIORIDAD: usar nuevos campos separados si existen, sino usar legacy
@@ -794,7 +846,8 @@ export default function ViewEditEPC() {
   };
 
   useEffect(() => {
-    if (!id) return;
+    // Evitar llamadas cuando id es undefined o la string literal "undefined"
+    if (!id || id === "undefined") return;
     loadContext(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
@@ -1336,7 +1389,7 @@ export default function ViewEditEPC() {
                     disabled={!allSectionsRated}
                     title={!allSectionsRated ? `Faltan evaluar: ${getUnratedSections().join(", ")}` : "Guardar evaluación completa"}
                   >
-                    <FaCheck /> Guardar Evaluación ({7 - getUnratedSections().length}/7)
+                    <FaCheck /> Guardar Evaluación ({getVisibleSections().length - getUnratedSections().length}/{getVisibleSections().length})
                   </button>
                 )}
 
@@ -1492,63 +1545,50 @@ export default function ViewEditEPC() {
                       const texto = evolucionText.trim();
                       if (!texto) return "—";
 
-                      // Si paciente falleció, formatear el párrafo del óbito
-                      if (pacienteFallecido) {
-                        const parrafos = texto.split(/\n\n/);
-                        const palabrasObito = ["paciente obitó", "óbito", "obito", "falleció", "fallecio", "murió", "murio", "defunción", "defuncion", "fallecimiento", "deceso"];
+                      // Separar DESENLACE: ÓBITO del cuerpo narrativo
+                      // Buscar TODAS las líneas con DESENLACE: ÓBITO y quedarse solo con la ÚLTIMA
+                      const lines = texto.split('\n');
+                      const narrativeLines: string[] = [];
+                      let lastObitoLine: string | null = null;
 
-                        // Buscar párrafo que mencione el fallecimiento
-                        const idxObito = parrafos.findIndex(p =>
-                          palabrasObito.some(palabra => p.toLowerCase().includes(palabra))
-                        );
-
-                        if (idxObito !== -1) {
-                          const parrafoObito = parrafos[idxObito];
-
-                          // Verificar si ya tiene el formato "PACIENTE OBITÓ - Fecha:"
-                          const yaFormateado = parrafoObito.toLowerCase().includes("paciente obitó");
-
-                          // Extraer fecha y hora del texto
-                          const fechaMatch = parrafoObito.match(/Fecha:\s*(\d{1,2}\/\d{1,2}\/\d{4})/i) ||
-                            parrafoObito.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-                          const horaMatch = parrafoObito.match(/Hora:\s*(\d{1,2}:\d{2})/i) ||
-                            parrafoObito.match(/(\d{1,2}:\d{2})/);
-
-                          const fechaObito = fechaMatch ? fechaMatch[1] : "";
-                          const horaObito = horaMatch ? horaMatch[1] : "";
-
-                          // Limpiar el texto si ya tiene formato
-                          let textoLimpio = parrafoObito;
-                          if (yaFormateado) {
-                            textoLimpio = parrafoObito.replace(/PACIENTE OBITÓ\s*-\s*Fecha:\s*[\d\/]+\s*(Hora:\s*[\d:]+)?\s*\.?\s*/i, "").trim();
-                          }
-
-                          return (
-                            <>
-                              {/* Párrafos antes del óbito */}
-                              {parrafos.slice(0, idxObito).map((p, i) => (
-                                <p key={i}>{p}</p>
-                              ))}
-
-                              {/* Párrafo del óbito con encabezado */}
-                              <div className="obito-section">
-                                <div className="obito-header">
-                                  ⚫ PACIENTE OBITÓ - Fecha: {fechaObito || "no registrada"} {horaObito ? `Hora: ${horaObito}` : ""}
-                                </div>
-                                <p>{textoLimpio || parrafoObito}</p>
-                              </div>
-
-                              {/* Párrafos después del óbito (si hay) */}
-                              {parrafos.slice(idxObito + 1).map((p, i) => (
-                                <p key={i + idxObito + 1}>{p}</p>
-                              ))}
-                            </>
-                          );
+                      for (const line of lines) {
+                        const trimmedLine = line.trim();
+                        // Detectar líneas de DESENLACE: ÓBITO (con o sin **)
+                        if (trimmedLine.includes("DESENLACE: ÓBITO") || trimmedLine.includes("**DESENLACE: ÓBITO**")) {
+                          lastObitoLine = trimmedLine;
+                          // NO agregar a narrativeLines - la sacamos del cuerpo
+                        } else if (trimmedLine === '---') {
+                          // Ignorar separadores ---
+                        } else {
+                          narrativeLines.push(line);
                         }
                       }
 
-                      // Sin óbito: renderizado normal
-                      return texto;
+                      // Unir de nuevo y dividir en párrafos
+                      const narrativeText = narrativeLines.join('\n').trim();
+                      const parrafos = narrativeText.split(/\n\n+/).filter(p => p.trim());
+
+                      return (
+                        <>
+                          {parrafos.map((p, i) => (
+                            <p key={i}>{p.trim()}</p>
+                          ))}
+                          {lastObitoLine && (
+                            <div className="obito-inline">
+                              <hr className="obito-divider" />
+                              <span className="obito-text">
+                                {(() => {
+                                  const fechaMatch = lastObitoLine.match(/Fecha:\s*([^\n|]+)/);
+                                  const horaMatch = lastObitoLine.match(/Hora:\s*(\S+)/);
+                                  const fecha = fechaMatch ? fechaMatch[1].trim() : "no registrada";
+                                  const hora = horaMatch ? horaMatch[1].trim() : "";
+                                  return `⚫ DESENLACE: ÓBITO - Fecha: ${fecha}${hora ? ` | Hora: ${hora}` : ""}`;
+                                })()}
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      );
                     })()}
                   </div>
                 )}
@@ -1642,7 +1682,56 @@ export default function ViewEditEPC() {
             {/* CARD 4 - Procedimientos / Interconsultas / Tratamiento / Indicaciones / Recomendaciones */}
             <div className="card card-gen card-terapeutica">
               <div className="section-header">
-                <h3>Procedimientos y plan terapéutico</h3>
+                <h3>Estudios, Procedimientos e Interconsultas</h3>
+              </div>
+
+              {/* ESTUDIOS - NUEVA SECCIÓN */}
+              <div className="gen-block">
+                <div className="gen-header-row">
+                  <div className="gen-key">Estudios</div>
+                  <div className="gen-header-actions">
+                    <FeedbackButtons section="estudios" />
+                    {!editingEstudios && (
+                      <button
+                        type="button"
+                        className="icon-btn"
+                        title="Editar sección"
+                        onClick={() => setEditingEstudios(true)}
+                      >
+                        <FaPen />
+                      </button>
+                    )}
+                    {editingEstudios && (
+                      <button
+                        type="button"
+                        className="icon-btn"
+                        title="Confirmar edición de sección"
+                        onClick={() => setEditingEstudios(false)}
+                      >
+                        <FaSave />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {editingEstudios ? (
+                  <textarea
+                    className="gen-textarea"
+                    value={estudiosText}
+                    onChange={(e) => setEstudiosText(e.target.value)}
+                    placeholder="DD/MM/YYYY HH:MM - Nombre del estudio"
+                  />
+                ) : (
+                  <div className="gen-text-readonly estudios-list">
+                    {(() => {
+                      const lineas = estudiosText.trim() ? estudiosText.split(/\r?\n/).filter(t => t.trim()) : [];
+                      if (!lineas.length) return "—";
+
+                      return lineas.map((linea, idx) => (
+                        <div key={`estudio-${idx}`}>• {linea}</div>
+                      ));
+                    })()}
+                  </div>
+                )}
               </div>
 
               {/* Procedimientos */}
@@ -1805,7 +1894,7 @@ export default function ViewEditEPC() {
                     onChange={(e) => setInterconsultasText(e.target.value)}
                   />
                 ) : (
-                  <div className="gen-text-readonly interconsultas-grouped">
+                  <div className="gen-text-readonly interconsultas-list">
                     {(() => {
                       const lineas = interconsultasText.trim()
                         ? interconsultasText.split(/\r?\n/).filter(t => t.trim())
@@ -1813,199 +1902,25 @@ export default function ViewEditEPC() {
 
                       if (!lineas.length) return "—";
 
-                      // Estructura: líneas que empiezan con "•" o sin guión son headers
-                      // líneas que empiezan con "-" o "  -" son detalles del header anterior
-                      type InterconsultaGrupo = {
-                        header: string;
-                        detalles: string[];
-                        key: string;
-                      };
-
-                      const grupos: InterconsultaGrupo[] = [];
-                      let currentGrupo: InterconsultaGrupo | null = null;
-
-                      lineas.forEach((linea, idx) => {
-                        const trimmed = linea.trim();
-
-                        // Detectar si es un detalle (empieza con "-" o "•-")
-                        const esDetalle = trimmed.startsWith("-") ||
-                          trimmed.startsWith("•-") ||
-                          trimmed.startsWith("• -") ||
-                          (linea.startsWith("  ") && !trimmed.startsWith("•"));
-
-                        if (esDetalle && currentGrupo) {
-                          // Es un detalle, agregarlo al grupo actual
-                          // Limpiar el guión inicial
-                          let detalleTexto = trimmed.replace(/^[•\s]*-\s*/, "").trim();
-                          currentGrupo.detalles.push(detalleTexto);
-                        } else {
-                          // Es un nuevo header (línea principal)
-                          // Limpiar el bullet point si existe
-                          let headerTexto = trimmed.replace(/^•\s*/, "").trim();
-
-                          currentGrupo = {
-                            header: headerTexto,
-                            detalles: [],
-                            key: `inter-${idx}`
-                          };
-                          grupos.push(currentGrupo);
-                        }
+                      // Formato simplificado: solo bullets con "Fecha - Especialidad"
+                      return lineas.map((linea, idx) => {
+                        // Limpiar bullet si ya existe
+                        const texto = linea.trim().replace(/^•\s*/, '');
+                        return <div key={`inter-${idx}`}>• {texto}</div>;
                       });
-
-                      // Si no hay grupos estructurados, mostrar como lista simple
-                      if (grupos.length === 0) {
-                        return lineas.map((t, i) => <div key={i}>• {t}</div>);
-                      }
-
-                      const toggleGrupo = (key: string) => {
-                        setExpandedInterEspecialidades(prev => {
-                          const newSet = new Set(prev);
-                          if (newSet.has(key)) {
-                            newSet.delete(key);
-                          } else {
-                            newSet.add(key);
-                          }
-                          return newSet;
-                        });
-                      };
-
-                      return (
-                        <div className="inter-tags-container">
-                          {grupos.map(grupo => {
-                            const isExpanded = expandedInterEspecialidades.has(grupo.key);
-                            const tieneDetalles = grupo.detalles.length > 0;
-
-                            return (
-                              <div key={grupo.key} className="inter-especialidad-group">
-                                {tieneDetalles ? (
-                                  <button
-                                    type="button"
-                                    className={`inter-tag ${isExpanded ? 'expanded' : ''}`}
-                                    onClick={() => toggleGrupo(grupo.key)}
-                                  >
-                                    <span className="inter-tag-name">{grupo.header}</span>
-                                    <span className="inter-tag-chevron">{isExpanded ? '▼' : '▶'}</span>
-                                  </button>
-                                ) : (
-                                  <div className="inter-tag inter-tag-simple">
-                                    <span className="inter-tag-name">{grupo.header}</span>
-                                  </div>
-                                )}
-
-                                {isExpanded && tieneDetalles && (
-                                  <div className="inter-detalles">
-                                    {grupo.detalles.map((detalle, idx) => (
-                                      <div key={idx} className="inter-detalle-item">
-                                        <span className="inter-texto">{detalle}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
                     })()}
                   </div>
                 )}
               </div>
 
-              {/* Tratamiento terapéutico */}
-              <div className="gen-block">
-                <div className="gen-header-row">
-                  <div className="gen-key">Plan Terapéutico <span className="section-tag">En Internación</span></div>
-                  <div className="gen-header-actions">
-                    <FeedbackButtons section="tratamiento" />
-                    {!editingTrat && (
-                      <button
-                        type="button"
-                        className="icon-btn"
-                        title="Editar sección"
-                        onClick={() => setEditingTrat(true)}
-                      >
-                        <FaPen />
-                      </button>
-                    )}
-                    {editingTrat && (
-                      <button
-                        type="button"
-                        className="icon-btn"
-                        title="Confirmar edición de sección"
-                        onClick={() => setEditingTrat(false)}
-                      >
-                        <FaSave />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                {editingTrat ? (
-                  <textarea
-                    className="gen-textarea"
-                    value={tratamientoText}
-                    onChange={(e) => setTratamientoText(e.target.value)}
-                  />
-                ) : (
-                  <div className="gen-text-readonly medicacion-structured">
-                    {medicacionData.length > 0 ? (
-                      <>
-                        {/* Medicación de Internación */}
-                        {medicacionData.filter(m => m.tipo === "internacion").length > 0 && (
-                          <div className="med-section">
-                            <div className="med-section-title">
-                              <span className="med-tag med-tag-internacion">💊 Durante Internación</span>
-                            </div>
-                            <div className="med-list">
-                              {medicacionData
-                                .filter(m => m.tipo === "internacion")
-                                .map((med, i) => (
-                                  <div key={i} className="med-item">
-                                    <span className="med-farmaco">{med.farmaco}</span>
-                                    {med.dosis && <span className="med-dosis">{med.dosis}</span>}
-                                    {med.via && <span className="med-via">{med.via}</span>}
-                                    {med.frecuencia && <span className="med-frecuencia">{med.frecuencia}</span>}
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Medicación Previa */}
-                        {medicacionData.filter(m => m.tipo === "previa").length > 0 && (
-                          <div className="med-section med-section-previa">
-                            <div className="med-section-title">
-                              <span className="med-tag med-tag-previa">📋 Medicación Previa (Antes de Internación)</span>
-                            </div>
-                            <div className="med-list">
-                              {medicacionData
-                                .filter(m => m.tipo === "previa")
-                                .map((med, i) => (
-                                  <div key={i} className="med-item med-item-previa">
-                                    <span className="med-farmaco">{med.farmaco}</span>
-                                    {med.dosis && <span className="med-dosis">{med.dosis}</span>}
-                                    {med.via && <span className="med-via">{med.via}</span>}
-                                    {med.frecuencia && <span className="med-frecuencia">{med.frecuencia}</span>}
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    ) : tratamientoText.trim() ? (
-                      tratamientoText.split(/\r?\n/).map((t, i) => <div key={i}>• {t}</div>)
-                    ) : (
-                      "—"
-                    )}
-                  </div>
-                )}
-              </div>
+              {/* Plan Terapéutico movido a "Otros Datos de Interés" - ver botón Farmacología */}
 
               {/* Indicaciones de alta */}
               <div className="gen-block">
                 <div className="gen-header-row">
                   <div className="gen-key">Indicaciones de alta <span className="section-tag editable">Lo Completa el Médico</span></div>
                   <div className="gen-header-actions">
-                    <FeedbackButtons section="indicaciones" />
+                    {/* Indicaciones no se evalúa - la completa el médico */}
                     {!editingIndAlta && (
                       <button
                         type="button"
@@ -2053,6 +1968,31 @@ export default function ViewEditEPC() {
                   </div>
                 )}
               </div>
+
+              {/* ========== OTROS DATOS DE INTERÉS (oculto si ÓBITO) ========== */}
+              {!pacienteFallecido && (
+                <div className="otros-datos-interes">
+                  <h4>Otros Datos de Interés</h4>
+                  <div className="otros-datos-buttons">
+                    <button
+                      type="button"
+                      className="btn-otros-datos btn-farmacologia"
+                      onClick={() => setFarmacologiaModalOpen(true)}
+                    >
+                      <span className="btn-icon">💊</span>
+                      <span className="btn-label">Farmacología</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-otros-datos btn-laboratorio"
+                      onClick={() => setLaboratorioModalOpen(true)}
+                    >
+                      <span className="btn-icon">🧪</span>
+                      <span className="btn-label">Determinaciones Laboratorio</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -2224,36 +2164,71 @@ export default function ViewEditEPC() {
                     <h4>💡 Recomendaciones médicas al momento de la externación del paciente que se desprenden de los registros en su HC</h4>
                     <p className="sugerencias-desc">Haga clic en una sugerencia para agregarla a las indicaciones:</p>
                     <div className="sugerencias-lista">
-                      {[
-                        "Reposo relativo por 48-72 horas",
-                        "Dieta blanda los primeros días",
-                        "Hidratación abundante (2-3 litros/día)",
-                        "Control de temperatura cada 8 horas",
-                        "Consultar ante fiebre mayor a 38°C",
-                        "Consultar ante dolor intenso no controlado",
-                        "Control ambulatorio en 7 días",
-                        "Control por consultorio externo",
-                        "Continuar medicación habitual",
-                        "Evitar esfuerzos físicos intensos",
-                        "Cuidados de herida quirúrgica",
-                        "Mantener zona limpia y seca",
-                        "No suspender medicación sin indicación médica",
-                        "Acudir a urgencias ante signos de alarma"
-                      ].map((sugerencia, idx) => (
-                        <button
-                          key={idx}
-                          className="sugerencia-item"
-                          onClick={() => {
-                            const bulletPoint = "• " + sugerencia;
-                            const newText = indicacionesAltaText.trim()
-                              ? indicacionesAltaText + "\n" + bulletPoint
-                              : bulletPoint;
-                            setIndicacionesAltaText(newText);
-                          }}
-                        >
-                          + {sugerencia}
-                        </button>
-                      ))}
+                      {(() => {
+                        // Generar sugerencias dinámicas basadas en evolución y diagnósticos
+                        const textoBase = (evolucionText + " " + (epc?.diagnostico_principal_cie10 || "")).toLowerCase();
+                        const sugerencias: string[] = [];
+
+                        // Sugerencias base siempre presentes
+                        sugerencias.push("Control ambulatorio por médico de cabecera en 7-10 días");
+                        sugerencias.push("Continuar esquema farmacológico según indicaciones de egreso");
+                        sugerencias.push("No suspender ni modificar medicación sin evaluación médica previa");
+
+                        // Sugerencias específicas por patología detectada
+                        if (/sepsis|infecci[oó]n|antibiot|leucocit/.test(textoBase)) {
+                          sugerencias.push("Control de temperatura cada 8 horas. Consulta precoz ante T ≥38°C");
+                          sugerencias.push("Completar esquema antibiótico indicado sin interrupciones");
+                        }
+                        if (/deshidrata|hidrat|electrol|ionograma/.test(textoBase)) {
+                          sugerencias.push("Hidratación oral abundante (mínimo 2 litros/día salvo restricción hídrica)");
+                        }
+                        if (/diab|glucemia|insulina|hipoglucem/.test(textoBase)) {
+                          sugerencias.push("Control de glucemia capilar según frecuencia indicada");
+                          sugerencias.push("Dieta para diabéticos según plan nutricional indicado");
+                        }
+                        if (/hipertensi|presión arterial|antihipertens/.test(textoBase)) {
+                          sugerencias.push("Control de presión arterial diario. Consultar si PAS >160 o PAD >100 mmHg");
+                        }
+                        if (/cardía|cardio|fibrilaci|arritmia|insuficiencia card/.test(textoBase)) {
+                          sugerencias.push("Restricción de sodio en dieta. Control de peso diario");
+                          sugerencias.push("Consulta precoz ante disnea progresiva, edema de miembros inferiores o palpitaciones");
+                        }
+                        if (/respirat|neumon|disnea|oxígeno|saturaci|bronc/.test(textoBase)) {
+                          sugerencias.push("Ejercicios respiratorios según indicación kinesiológica");
+                          sugerencias.push("Consulta precoz ante disnea progresiva o fiebre");
+                        }
+                        if (/renal|creatinina|diálisis|nefro/.test(textoBase)) {
+                          sugerencias.push("Control de función renal (creatinina, urea) en 7 días");
+                        }
+                        if (/quirúrg|cirug|herida|postoper/.test(textoBase)) {
+                          sugerencias.push("Curación de herida quirúrgica cada 48-72 horas, mantener zona limpia y seca");
+                        }
+                        if (/confusi|deterioro cognitivo|desorientaci|psiquiátr/.test(textoBase)) {
+                          sugerencias.push("Supervisión permanente por familiar o cuidador");
+                        }
+                        if (/kinesio|rehabilitaci|moviliz/.test(textoBase)) {
+                          sugerencias.push("Continuar plan de rehabilitación kinesiológica ambulatoria");
+                        }
+
+                        // Sugerencia general final
+                        sugerencias.push("Concurrir a servicio de urgencias ante signos de alarma o deterioro del estado general");
+
+                        return sugerencias.map((sugerencia, idx) => (
+                          <button
+                            key={idx}
+                            className="sugerencia-item"
+                            onClick={() => {
+                              const bulletPoint = "• " + sugerencia;
+                              const newText = indicacionesAltaText.trim()
+                                ? indicacionesAltaText + "\n" + bulletPoint
+                                : bulletPoint;
+                              setIndicacionesAltaText(newText);
+                            }}
+                          >
+                            + {sugerencia}
+                          </button>
+                        ));
+                      })()}
                     </div>
                   </>
                 )}
@@ -2357,6 +2332,124 @@ export default function ViewEditEPC() {
                 disabled={saving}
               >
                 {saving ? "Guardando..." : "✅ Aplicar selección"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== Modal de Farmacología (Plan Terapéutico) ========== */}
+      {farmacologiaModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-farmacologia">
+            <div className="modal-header">
+              <h3>💊 Farmacología - Plan Terapéutico</h3>
+              <button
+                className="modal-close-btn"
+                onClick={() => setFarmacologiaModalOpen(false)}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="farmacologia-content">
+                {medicacionData.length > 0 ? (
+                  <>
+                    {/* Medicación de Internación */}
+                    {medicacionData.filter(m => m.tipo === "internacion").length > 0 && (
+                      <div className="med-section">
+                        <div className="med-section-title">
+                          <span className="med-tag med-tag-internacion">💊 Durante Internación</span>
+                        </div>
+                        <div className="med-list">
+                          {medicacionData
+                            .filter(m => m.tipo === "internacion")
+                            .map((med, i) => (
+                              <div key={i} className="med-item">
+                                <span className="med-farmaco">{med.farmaco}</span>
+                                {med.dosis && <span className="med-dosis">{med.dosis}</span>}
+                                {med.via && <span className="med-via">{med.via}</span>}
+                                {med.frecuencia && <span className="med-frecuencia">{med.frecuencia}</span>}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Medicación Previa */}
+                    {medicacionData.filter(m => m.tipo === "previa").length > 0 && (
+                      <div className="med-section med-section-previa">
+                        <div className="med-section-title">
+                          <span className="med-tag med-tag-previa">📋 Medicación Previa (Antes de Internación)</span>
+                        </div>
+                        <div className="med-list">
+                          {medicacionData
+                            .filter(m => m.tipo === "previa")
+                            .map((med, i) => (
+                              <div key={i} className="med-item med-item-previa">
+                                <span className="med-farmaco">{med.farmaco}</span>
+                                {med.dosis && <span className="med-dosis">{med.dosis}</span>}
+                                {med.via && <span className="med-via">{med.via}</span>}
+                                {med.frecuencia && <span className="med-frecuencia">{med.frecuencia}</span>}
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : tratamientoText.trim() ? (
+                  <div className="med-list-simple">
+                    {tratamientoText.split(/\r?\n/).map((t, i) => <div key={i}>• {t}</div>)}
+                  </div>
+                ) : (
+                  <p className="empty-state">No hay datos de farmacología registrados.</p>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn primary"
+                onClick={() => setFarmacologiaModalOpen(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== Modal de Determinaciones Laboratorio ========== */}
+      {laboratorioModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content modal-laboratorio">
+            <div className="modal-header">
+              <h3>🧪 Determinaciones de Laboratorio</h3>
+              <button
+                className="modal-close-btn"
+                onClick={() => setLaboratorioModalOpen(false)}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="laboratorio-content">
+                {laboratoriosData.length === 0 ? (
+                  <p className="empty-state">No hay determinaciones de laboratorio registradas.</p>
+                ) : (
+                  <ul className="lab-list">
+                    {laboratoriosData.map((lab, i) => (
+                      <li key={i} className="lab-item">{lab}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn primary"
+                onClick={() => setLaboratorioModalOpen(false)}
+              >
+                Cerrar
               </button>
             </div>
           </div>

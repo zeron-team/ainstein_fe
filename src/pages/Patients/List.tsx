@@ -811,7 +811,12 @@ export default function PatientsList() {
         patient_id: p.id,
         admission_id: null,
       });
-      const epcId: string = opened.data.id;
+      const epcId: string | undefined = opened.data?.id;
+
+      // ⚠️ Validar que epcId sea válido antes de continuar
+      if (!epcId || epcId === "undefined") {
+        throw new Error("El servidor no retornó un ID de EPC válido. Por favor, intente nuevamente.");
+      }
 
       if (shouldGenerate) {
         await api.post(`/epc/${epcId}/generate`);

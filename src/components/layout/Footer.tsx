@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
       <span className="footer-divider">•</span>
       <span className="footer-copy">© {year} ZRN Health</span>
       <span className="footer-divider">•</span>
-      <span className="footer-version">v1.2.0</span>
+      <span className="footer-version">v2.0.0</span>
     </footer>
   );
 };
