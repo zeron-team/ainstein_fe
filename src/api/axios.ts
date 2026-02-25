@@ -93,9 +93,15 @@ const api = axios.create({
   },
 });
 
-// Request interceptor: agrega Authorization SIEMPRE que haya token
+// Request interceptor: agrega Authorization (excepto en endpoints de auth)
 api.interceptors.request.use(
   (config) => {
+    // No enviar token en endpoints de autenticación
+    const url = config.url || "";
+    if (url.startsWith("/auth/")) {
+      return config;
+    }
+
     const token = getAuthTokenFromStorage();
     const bearer = toBearer(token);
 
@@ -108,10 +114,26 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: devuelve error limpio
+// Response interceptor: auto-logout en 401
 api.interceptors.response.use(
   (res) => res,
-  (error: AxiosError) => Promise.reject(error)
+  (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      const url = error.config?.url || "";
+      // Si es 401 en un endpoint que NO es login, limpiar tokens y redirigir
+      if (!url.startsWith("/auth/")) {
+        const keys = ["token", "access_token", "AUTH_TOKEN", "ACCESS_TOKEN", "jwt", "id_token", "auth_token"];
+        keys.forEach((k) => localStorage.removeItem(k));
+        keys.forEach((k) => sessionStorage.removeItem(k));
+        delete (api.defaults.headers.common as any).Authorization;
+        // Redirigir a login si no estamos ya ahí
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
 );
 
 export default api;

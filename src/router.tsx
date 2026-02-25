@@ -19,6 +19,8 @@ import FeedbackDashboard from "@/pages/Admin/FeedbackDashboard";
 import CostsDashboard from "@/pages/Admin/CostsDashboard";
 import HealthCheck from "@/pages/Admin/HealthCheck";
 import TenantManager from "@/pages/Admin/TenantManager";
+import EPCControlDashboard from "@/pages/Admin/EPCControlDashboard";
+import SnomedDashboard from "@/pages/Admin/SnomedDashboard";
 import ErrorPage from "@/pages/ErrorPage";
 import AinsteinWsPage from "@/pages/AinsteinWsPage";
 
@@ -61,6 +63,8 @@ const router = createBrowserRouter([
               { path: "admin/costs", element: <CostsDashboard /> },
               { path: "admin/health", element: <HealthCheck /> },
               { path: "admin/tenants", element: <TenantManager /> },
+              { path: "admin/epc-control", element: <EPCControlDashboard /> },
+              { path: "admin/snomed", element: <SnomedDashboard /> },
             ],
           },
         ],

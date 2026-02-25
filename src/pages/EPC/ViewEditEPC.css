@@ -1663,3 +1663,242 @@ textarea.gen-textarea:focus {
   font-size: 14px;
   color: var(--text);
 }
+
+/* ============================================================================
+   DraggableSectionList — Items interactivos con ✓/✗ y drag-drop
+   ============================================================================ */
+
+.section-drop-zone {
+  min-height: 32px;
+  border-radius: var(--radius-sm);
+  padding: 4px 0;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.section-drop-zone.drag-over {
+  border: 2px dashed #0284c7;
+  background: rgba(2, 132, 199, 0.04);
+  border-radius: var(--radius-md);
+}
+
+.section-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+  cursor: default;
+}
+
+.section-item:hover {
+  background: rgba(2, 132, 199, 0.04);
+  border-color: var(--border);
+}
+
+.section-item.confirmed {
+  background: rgba(22, 163, 74, 0.06);
+  border-color: rgba(22, 163, 74, 0.2);
+}
+
+.section-item.dragging {
+  opacity: 0.4;
+  border: 1px dashed var(--primary);
+}
+
+/* Drag handle */
+.drag-handle {
+  cursor: grab;
+  color: #cbd5e1;
+  font-size: 11px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.section-item:hover .drag-handle {
+  color: #94a3b8;
+}
+
+/* Item action buttons */
+.item-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #cbd5e1;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.item-btn:hover {
+  transform: scale(1.1);
+}
+
+.item-btn-check:hover,
+.item-btn-check.active {
+  color: #16a34a;
+  border-color: rgba(22, 163, 74, 0.5);
+  background: rgba(22, 163, 74, 0.1);
+}
+
+.item-btn-remove:hover {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.5);
+  background: rgba(220, 38, 38, 0.08);
+}
+
+/* Item text */
+.section-item-text {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.4;
+  flex: 1;
+  min-width: 0;
+}
+
+/* ========== CORRECTIONS PANEL ========== */
+.corrections-panel {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #fafbfc;
+  margin-top: 12px;
+}
+
+.corrections-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  user-select: none;
+}
+
+.corrections-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 10px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: 8px;
+}
+
+.corrections-summary-tags {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.corr-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.corr-move {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.corr-remove {
+  background: rgba(220, 38, 38, 0.08);
+  color: #dc2626;
+}
+
+.corr-confirm {
+  background: rgba(22, 163, 74, 0.08);
+  color: #16a34a;
+}
+
+.corrections-detail-list {
+  border-top: 1px solid #e2e8f0;
+  padding: 8px 14px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.correction-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+}
+
+.correction-item:last-child {
+  border-bottom: none;
+}
+
+.correction-action-icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.correction-move .correction-action-icon {
+  color: #3b82f6;
+}
+
+.correction-remove .correction-action-icon {
+  color: #dc2626;
+}
+
+.correction-confirm .correction-action-icon {
+  color: #16a34a;
+}
+
+.correction-item-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #334155;
+}
+
+.correction-flow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.correction-section-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.correction-arrow {
+  color: #3b82f6;
+  font-weight: 700;
+  font-size: 13px;
+}

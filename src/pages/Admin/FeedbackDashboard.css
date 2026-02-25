@@ -397,9 +397,35 @@
 .fb-grouped-controls {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
     gap: 12px;
     padding: 8px 0;
+}
+
+.fb-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border, #e2e8f0);
+    background: var(--bg-alt, #f8fafc);
+    color: var(--muted, #94a3b8);
+    min-width: 260px;
+}
+
+.fb-search-wrap svg {
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.fb-search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text, #1e293b);
+    font-size: 13px;
+    width: 100%;
 }
 
 .fb-sort-btn {
@@ -2381,4 +2407,413 @@
 
 .fb-info-modal-content p:last-child {
     margin-bottom: 0;
+}
+
+/* ========== CORRECTIONS TAB ========== */
+.fb-corrections-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #3b82f6;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 10px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    margin-left: 6px;
+}
+
+.fb-corrections-view {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.fb-corr-action-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.fb-corr-move {
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.fb-corr-remove {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.fb-corr-confirm {
+    background: rgba(22, 163, 74, 0.1);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.fb-corr-section {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: capitalize;
+}
+
+/* ========== CORRECTIONS: Patient Column ========== */
+.fb-td-patient {
+    white-space: nowrap;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fb-corr-patient {
+    display: inline-flex;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: #334155;
+}
+
+/* ========== CORRECTIONS: Approval Status Badges ========== */
+.fb-corr-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.fb-corr-approved {
+    background: rgba(22, 163, 74, 0.12);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.fb-corr-rejected {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+/* ========== CORRECTIONS: Approve / Reject Buttons ========== */
+.fb-corr-approval-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.fb-corr-approve-btn,
+.fb-corr-reject-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.fb-corr-approve-btn {
+    background: rgba(22, 163, 74, 0.12);
+    color: #16a34a;
+    border: 1px solid rgba(22, 163, 74, 0.3);
+}
+
+.fb-corr-approve-btn:hover:not(:disabled) {
+    background: #16a34a;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+.fb-corr-reject-btn {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.fb-corr-reject-btn:hover:not(:disabled) {
+    background: #dc2626;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.fb-corr-approve-btn:disabled,
+.fb-corr-reject-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========== CORRECTIONS: Dictionary Panel ========== */
+.fb-panel-dictionary {
+    border-top: 3px solid #7c3aed;
+}
+
+.fb-dictionary-desc {
+    margin: 0 0 16px 0;
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.fb-dict-freq {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 10px;
+    min-width: 28px;
+    height: 20px;
+    padding: 0 6px;
+}
+
+/* ========== CORRECTIONS: Consultar Badge & Button ========== */
+.fb-corr-consultar {
+    background: rgba(217, 119, 6, 0.12);
+    color: #d97706;
+    border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.fb-corr-consultar-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    border: 1px solid rgba(217, 119, 6, 0.3);
+    background: rgba(217, 119, 6, 0.1);
+    color: #d97706;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.fb-corr-consultar-btn:hover:not(:disabled) {
+    background: #d97706;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+}
+
+.fb-corr-consultar-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ========== CORRECTIONS: Resolved Status + Revoke ========== */
+.fb-corr-status-resolved {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.fb-corr-revoke-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.fb-corr-revoke-btn:hover:not(:disabled) {
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
+}
+
+.fb-corr-revoke-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ========== CONFIRMATION MODAL ========== */
+.fb-confirm-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1100;
+    animation: fadeIn 0.15s ease;
+}
+
+.fb-confirm-modal {
+    background: #fff;
+    border-radius: 16px;
+    max-width: 480px;
+    width: 92%;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+    animation: slideIn 0.2s ease;
+    overflow: hidden;
+}
+
+.fb-confirm-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 24px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.fb-confirm-header h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.fb-confirm-body {
+    padding: 20px 24px;
+}
+
+.fb-confirm-item-preview {
+    margin: 0 0 14px 0;
+    font-size: 13px;
+    color: #475569;
+    padding: 10px 12px;
+    background: #f1f5f9;
+    border-radius: 8px;
+    border-left: 3px solid #3b82f6;
+    line-height: 1.5;
+}
+
+.fb-confirm-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(217, 119, 6, 0.08);
+    border: 1px solid rgba(217, 119, 6, 0.25);
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.fb-confirm-warning-red {
+    background: rgba(220, 38, 38, 0.06);
+    border-color: rgba(220, 38, 38, 0.2);
+}
+
+.fb-confirm-warning p {
+    margin: 0;
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.5;
+}
+
+.fb-confirm-hint {
+    margin: 0;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.fb-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 16px 24px;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.fb-confirm-cancel-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #fff;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fb-confirm-cancel-btn:hover {
+    background: #f1f5f9;
+    color: #334155;
+}
+
+.fb-confirm-consultar-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid rgba(217, 119, 6, 0.4);
+    background: rgba(217, 119, 6, 0.1);
+    color: #d97706;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fb-confirm-consultar-btn:hover {
+    background: #d97706;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.3);
+}
+
+.fb-confirm-ok-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #fff;
+}
+
+.fb-confirm-ok-approve {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+.fb-confirm-ok-approve:hover {
+    box-shadow: 0 4px 16px rgba(22, 163, 74, 0.4);
+    transform: translateY(-1px);
+}
+
+.fb-confirm-ok-reject {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.fb-confirm-ok-reject:hover {
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.4);
+    transform: translateY(-1px);
 }

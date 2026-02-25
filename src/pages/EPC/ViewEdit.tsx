@@ -20,6 +20,7 @@ import {
   FaThumbsDown,
   FaMeh,
   FaTimes,
+  FaGripVertical,
 } from "react-icons/fa";
 
 import "./ViewEditEPC.css";
@@ -202,6 +203,159 @@ function multilineToArray(text: string): string[] {
     .filter((l) => l.length > 0);
 }
 
+// ============================================================================
+// DraggableSectionList: Items con ✓/✗ y drag-drop entre secciones
+// ============================================================================
+type SectionName = "estudios" | "procedimientos" | "interconsultas";
+
+interface DraggableSectionListProps {
+  sectionName: SectionName;
+  items: string[];
+  onItemsChange: (items: string[]) => void;
+  onItemDropped?: (item: string, fromSection: SectionName, toSection: SectionName) => void;
+  onItemRemoved?: (item: string, fromSection: SectionName) => void;
+  onItemConfirmed?: (item: string, section: SectionName) => void;
+}
+
+function DraggableSectionList({
+  sectionName,
+  items,
+  onItemsChange,
+  onItemDropped,
+  onItemRemoved,
+  onItemConfirmed,
+}: DraggableSectionListProps) {
+  const [confirmedItems, setConfirmedItems] = useState<Set<string>>(new Set());
+  const [dragOverActive, setDragOverActive] = useState(false);
+  const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
+
+  const handleConfirm = (item: string, idx: number) => {
+    const newConfirmed = new Set(confirmedItems);
+    if (newConfirmed.has(item)) {
+      newConfirmed.delete(item);
+    } else {
+      newConfirmed.add(item);
+      onItemConfirmed?.(item, sectionName);
+    }
+    setConfirmedItems(newConfirmed);
+  };
+
+  const handleRemove = (item: string, idx: number) => {
+    const newItems = items.filter((_, i) => i !== idx);
+    onItemsChange(newItems);
+    onItemRemoved?.(item, sectionName);
+  };
+
+  // Drag start: store item text and source section
+  const handleDragStart = (e: React.DragEvent, item: string, idx: number) => {
+    e.dataTransfer.setData("text/plain", item);
+    e.dataTransfer.setData("application/x-section", sectionName);
+    e.dataTransfer.setData("application/x-index", String(idx));
+    e.dataTransfer.effectAllowed = "move";
+    setDraggingIdx(idx);
+  };
+
+  const handleDragEnd = () => {
+    setDraggingIdx(null);
+  };
+
+  // Drop zone handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Only deactivate if leaving the container (not entering a child)
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX;
+    const y = e.clientY;
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      setDragOverActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOverActive(false);
+
+    const itemText = e.dataTransfer.getData("text/plain");
+    const fromSection = e.dataTransfer.getData("application/x-section") as SectionName;
+    const fromIndex = parseInt(e.dataTransfer.getData("application/x-index"), 10);
+
+    if (!itemText || !fromSection) return;
+
+    // Don't drop on same section
+    if (fromSection === sectionName) return;
+
+    // Add to this section
+    const newItems = [...items, itemText];
+    onItemsChange(newItems);
+
+    // Notify parent about the move
+    onItemDropped?.(itemText, fromSection, sectionName);
+  };
+
+  if (!items.length) {
+    return (
+      <div
+        className={`section-drop-zone ${dragOverActive ? "drag-over" : ""}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        —
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`section-drop-zone ${dragOverActive ? "drag-over" : ""}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {items.map((item, idx) => {
+        const isConfirmed = confirmedItems.has(item);
+        const isDragging = draggingIdx === idx;
+
+        return (
+          <div
+            key={`${sectionName}-item-${idx}`}
+            className={`section-item ${isConfirmed ? "confirmed" : ""} ${isDragging ? "dragging" : ""}`}
+            draggable
+            onDragStart={(e) => handleDragStart(e, item, idx)}
+            onDragEnd={handleDragEnd}
+          >
+            <span className="drag-handle" title="Arrastrar a otra sección">
+              <FaGripVertical />
+            </span>
+            <button
+              type="button"
+              className={`item-btn item-btn-check ${isConfirmed ? "active" : ""}`}
+              title={isConfirmed ? "Desmarcar" : "Confirmar item"}
+              onClick={() => handleConfirm(item, idx)}
+            >
+              <FaCheck />
+            </button>
+            <button
+              type="button"
+              className="item-btn item-btn-remove"
+              title="Eliminar item"
+              onClick={() => handleRemove(item, idx)}
+            >
+              <FaTimes />
+            </button>
+            <span className="section-item-text">• {item.replace(/^•\s*/, "")}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // Formatea la fecha del historial a algo legible: 21/11/2025 19:05
 function formatHistoryDate(iso?: string | null) {
   if (!iso) return "";
@@ -361,6 +515,9 @@ export default function ViewEditEPC() {
   const [editingIndAlta, setEditingIndAlta] = useState(false);
   const [editingRecom, setEditingRecom] = useState(false);
 
+  // Guardar solo se muestra cuando se está editando alguna sección
+  const isAnyEditing = editingMotivo || editingEvolucion || editingEstudios || editingProc || editingInter || editingTrat || editingIndAlta || editingRecom;
+
   // Modal de Notas al Alta (Recomendaciones)
   const [notasAltaModalOpen, setNotasAltaModalOpen] = useState(false);
 
@@ -383,6 +540,101 @@ export default function ViewEditEPC() {
   // Estado para labs seleccionados para exportación PDF
   const [selectedLabsForPdf, setSelectedLabsForPdf] = useState<Set<string>>(new Set());
 
+  // =========================================================================
+  // Handlers para DraggableSectionList: sync items ↔ text state
+  // =========================================================================
+  const textSetters: Record<SectionName, (text: string) => void> = {
+    estudios: setEstudiosText,
+    procedimientos: setProcedimientosText,
+    interconsultas: setInterconsultasText,
+  };
+
+  const textGetters: Record<SectionName, () => string> = {
+    estudios: () => estudiosText,
+    procedimientos: () => procedimientosText,
+    interconsultas: () => interconsultasText,
+  };
+
+  const handleSectionItemsChange = (section: SectionName, items: string[]) => {
+    textSetters[section](items.join("\n"));
+  };
+
+  const handleItemDropped = (item: string, fromSection: SectionName, toSection: SectionName) => {
+    // Remove item from source section
+    const sourceItems = multilineToArray(textGetters[fromSection]());
+    const newSourceItems = sourceItems.filter((t) => t !== item);
+    textSetters[fromSection](newSourceItems.join("\n"));
+
+    // Add item to destination section
+    const destItems = multilineToArray(textGetters[toSection]());
+    destItems.push(item);
+    textSetters[toSection](destItems.join("\n"));
+
+    // Track locally
+    setLocalCorrections(prev => [{ item, from_section: fromSection, to_section: toSection, action: "move", created_at: new Date().toISOString() }, ...prev]);
+
+    // Save correction to backend (fire-and-forget)
+    if (id) {
+      api.post(`/epc/${id}/section-corrections`, {
+        corrections: [{ item, from_section: fromSection, to_section: toSection, action: "move" }],
+      }).catch(() => { });
+    }
+
+    // Auto-save EPC so changes persist on refresh
+    setTimeout(() => onSave(), 100);
+  };
+
+  const handleItemRemoved = (item: string, fromSection: SectionName) => {
+    // Track locally
+    setLocalCorrections(prev => [{ item, from_section: fromSection, to_section: null, action: "remove", created_at: new Date().toISOString() }, ...prev]);
+
+    if (id) {
+      api.post(`/epc/${id}/section-corrections`, {
+        corrections: [{ item, from_section: fromSection, to_section: null, action: "remove" }],
+      }).catch(() => { });
+    }
+
+    // Auto-save EPC so removal persists on refresh
+    setTimeout(() => onSave(), 100);
+  };
+
+  const handleItemConfirmed = (item: string, section: SectionName) => {
+    // Track locally
+    setLocalCorrections(prev => [{ item, from_section: section, to_section: null, action: "confirm", created_at: new Date().toISOString() }, ...prev]);
+
+    if (id) {
+      api.post(`/epc/${id}/section-corrections`, {
+        corrections: [{ item, from_section: section, to_section: null, action: "confirm" }],
+      }).catch(() => { });
+    }
+  };
+
+  // Corrections state
+  type CorrectionEntry = { item: string; from_section: string; to_section: string | null; action: string; created_at: string | null };
+  const [localCorrections, setLocalCorrections] = useState<CorrectionEntry[]>([]);
+  const [showCorrections, setShowCorrections] = useState(false);
+
+  // Load corrections on mount
+  useEffect(() => {
+    if (!id) return;
+    api.get(`/epc/${id}/section-corrections`)
+      .then((res: any) => {
+        setLocalCorrections(res.data?.corrections || []);
+      })
+      .catch(() => { });
+  }, [id]);
+
+  // Corrections summary
+  const correctionsSummary = useMemo(() => {
+    const s = { move: 0, remove: 0, confirm: 0, total: localCorrections.length };
+    localCorrections.forEach(c => {
+      if (c.action === "move") s.move++;
+      else if (c.action === "remove") s.remove++;
+      else if (c.action === "confirm") s.confirm++;
+    });
+    return s;
+  }, [localCorrections]);
+
   // Guardado / generación
   const [saving, setSaving] = useState(false);
   const [toastOk, setToastOk] = useState<string | null>(null);
@@ -390,7 +642,7 @@ export default function ViewEditEPC() {
   const [generating, setGenerating] = useState(false);
 
   // Tabs: vista principal vs historial
-  const [activeTab, setActiveTab] = useState<"epc" | "history">("epc");
+  const [activeTab, setActiveTab] = useState<"epc" | "history" | "corrections">("epc");
 
   // ✅ Feedback de secciones generadas por IA
   type SectionRating = "ok" | "partial" | "bad" | null;
@@ -564,13 +816,8 @@ export default function ViewEditEPC() {
       };
 
       if (data.has_previous && data.sections) {
-        // Rellenar SOLO con los valores del usuario actual
-        for (const [apiSection, sectionData] of Object.entries(data.sections)) {
-          const sectionKey = apiToSectionKey[apiSection];
-          if (sectionKey && sectionData.rating) {
-            cleanRatings[sectionKey] = sectionData.rating as SectionRating;
-          }
-        }
+        // Solo marcar que hay evaluación previa, NO pre-llenar ratings
+        // El usuario empieza con form limpio
       }
 
       setSectionRatings(cleanRatings);
@@ -870,6 +1117,7 @@ export default function ViewEditEPC() {
         ...baseGenData,
         motivo_internacion: motivoText.trim(),
         evolucion: evolucionText.trim(),
+        estudios: multilineToArray(estudiosText),
         procedimientos: multilineToArray(procedimientosText),
         interconsultas: multilineToArray(interconsultasText),
         medicacion: multilineToArray(tratamientoText),
@@ -895,7 +1143,6 @@ export default function ViewEditEPC() {
 
       await api.patch(`/epc/${epc.id}`, payload);
       setToastOk("Cambios guardados correctamente.");
-      navigate("/patients");
     } catch (e: any) {
       setToastErr(e?.response?.data?.detail ?? "No se pudo guardar.");
     } finally {
@@ -1270,6 +1517,13 @@ export default function ViewEditEPC() {
         >
           Historial
         </button>
+        <button
+          type="button"
+          className={`tab ${activeTab === "corrections" ? "active" : ""}`}
+          onClick={() => setActiveTab("corrections")}
+        >
+          Correcciones {localCorrections.length > 0 && <span className="corrections-badge">{localCorrections.length}</span>}
+        </button>
       </div>
 
       {/* Contenido según pestaña */}
@@ -1351,15 +1605,17 @@ export default function ViewEditEPC() {
                   <FaClipboard /> {generating ? "Generando…" : "Generar / Regenerar"}
                 </button>
 
-                <button
-                  className={`btn primary ${evaluationMode ? "disabled" : ""}`}
-                  onClick={onSave}
-                  disabled={saving || evaluationMode}
-                  title={evaluationMode ? "Primero guarde la evaluación" : "Guardar cambios de la EPC"}
-                >
-                  <FaSave />
-                  {saving ? "Guardando…" : "Guardar"}
-                </button>
+                {isAnyEditing && !evaluationMode && (
+                  <button
+                    className="btn primary"
+                    onClick={onSave}
+                    disabled={saving}
+                    title="Guardar cambios de la EPC"
+                  >
+                    <FaSave />
+                    {saving ? "Guardando…" : "Guardar"}
+                  </button>
+                )}
 
                 {/* Botón Evaluar / Cancelar Evaluación */}
                 {!evaluationMode ? (
@@ -1488,7 +1744,7 @@ export default function ViewEditEPC() {
                         type="button"
                         className="icon-btn"
                         title="Confirmar edición de sección"
-                        onClick={() => setEditingMotivo(false)}
+                        onClick={() => { onSave(); setEditingMotivo(false); }}
                       >
                         <FaSave />
                       </button>
@@ -1526,7 +1782,7 @@ export default function ViewEditEPC() {
                         type="button"
                         className="icon-btn"
                         title="Confirmar edición de sección"
-                        onClick={() => setEditingEvolucion(false)}
+                        onClick={() => { onSave(); setEditingEvolucion(false); }}
                       >
                         <FaSave />
                       </button>
@@ -1706,7 +1962,7 @@ export default function ViewEditEPC() {
                         type="button"
                         className="icon-btn"
                         title="Confirmar edición de sección"
-                        onClick={() => setEditingEstudios(false)}
+                        onClick={() => { onSave(); setEditingEstudios(false); }}
                       >
                         <FaSave />
                       </button>
@@ -1718,19 +1974,17 @@ export default function ViewEditEPC() {
                     className="gen-textarea"
                     value={estudiosText}
                     onChange={(e) => setEstudiosText(e.target.value)}
-                    placeholder="DD/MM/YYYY HH:MM - Nombre del estudio"
+                    placeholder="DD/MM/YYYY - Nombre del estudio"
                   />
                 ) : (
-                  <div className="gen-text-readonly estudios-list">
-                    {(() => {
-                      const lineas = estudiosText.trim() ? estudiosText.split(/\r?\n/).filter(t => t.trim()) : [];
-                      if (!lineas.length) return "—";
-
-                      return lineas.map((linea, idx) => (
-                        <div key={`estudio-${idx}`}>• {linea}</div>
-                      ));
-                    })()}
-                  </div>
+                  <DraggableSectionList
+                    sectionName="estudios"
+                    items={multilineToArray(estudiosText)}
+                    onItemsChange={(items) => handleSectionItemsChange("estudios", items)}
+                    onItemDropped={handleItemDropped}
+                    onItemRemoved={handleItemRemoved}
+                    onItemConfirmed={handleItemConfirmed}
+                  />
                 )}
               </div>
 
@@ -1755,7 +2009,7 @@ export default function ViewEditEPC() {
                         type="button"
                         className="icon-btn"
                         title="Confirmar edición de sección"
-                        onClick={() => setEditingProc(false)}
+                        onClick={() => { onSave(); setEditingProc(false); }}
                       >
                         <FaSave />
                       </button>
@@ -1769,93 +2023,14 @@ export default function ViewEditEPC() {
                     onChange={(e) => setProcedimientosText(e.target.value)}
                   />
                 ) : (
-                  <div className="gen-text-readonly procedimientos-list">
-                    {(() => {
-                      const lineas = procedimientosText.trim() ? procedimientosText.split(/\r?\n/).filter(t => t.trim()) : [];
-                      if (!lineas.length) return "—";
-
-                      // Parsear todas las líneas
-                      const parsed = lineas.map(t => {
-                        const { fechaHora, descripcion, tieneHora } = parseProcedimiento(t);
-                        const esLab = isLaboratorio(t);
-                        return { original: t, fechaHora, descripcion, tieneHora, esLab };
-                      });
-
-                      // Función auxiliar para convertir hora a minutos
-                      const horaAMinutos = (hora: string): number => {
-                        const match = hora.match(/(\d{1,2}):(\d{2})/);
-                        if (!match) return -1;
-                        return parseInt(match[1]) * 60 + parseInt(match[2]);
-                      };
-
-                      // Función para obtener clave de agrupación (fecha + bloque de hora)
-                      const getClaveAgrupacion = (fechaHora: string, tieneHora: boolean): string => {
-                        if (!tieneHora) {
-                          // Sin hora: agrupar por fecha
-                          return `${fechaHora}|SIN_HORA`;
-                        }
-                        // Con hora: extraer fecha y hora
-                        const partes = fechaHora.split(' ');
-                        const fecha = partes[0];
-                        const hora = partes[1] || "";
-                        const minutos = horaAMinutos(hora);
-                        // Crear bloque de 3 minutos (0-2, 3-5, 6-8, etc.)
-                        const bloqueMinutos = Math.floor(minutos / 3) * 3;
-                        return `${fecha}|${bloqueMinutos}`;
-                      };
-
-                      // Agrupar TODOS los laboratorios en un solo item
-                      const todosLosLabs: string[] = [];
-                      const otrosItems: typeof parsed = [];
-
-                      parsed.forEach(item => {
-                        if (item.esLab && item.fechaHora) {
-                          todosLosLabs.push(`${item.fechaHora}: ${item.descripcion}`);
-                        } else {
-                          otrosItems.push(item);
-                        }
-                      });
-
-                      // Renderizar items agrupados y no agrupados
-                      const elementos: JSX.Element[] = [];
-                      let keyIdx = 0;
-
-                      // Laboratorios: 1 solo item agrupado sin fecha
-                      if (todosLosLabs.length > 0) {
-                        const detalleCompleto = todosLosLabs.join("\n");
-                        elementos.push(
-                          <div key={`lab-${keyIdx++}`} className="proc-item proc-lab">
-                            • <button
-                              type="button"
-                              className="lab-tag"
-                              onClick={() => setLabDetailModal({
-                                open: true,
-                                fecha: "Durante la internación",
-                                detalle: detalleCompleto
-                              })}
-                            >
-                              Laboratorios realizados ({todosLosLabs.length} {todosLosLabs.length === 1 ? 'estudio' : 'estudios'})
-                            </button>
-                          </div>
-                        );
-                      }
-
-                      // Otros items (procedimientos normales)
-                      otrosItems.forEach((item) => {
-                        const fechaFormateada = item.fechaHora
-                          ? (item.tieneHora ? item.fechaHora : `${item.fechaHora} (hora no registrada)`)
-                          : "";
-
-                        if (item.fechaHora && !item.tieneHora) {
-                          elementos.push(<div key={`proc-${keyIdx++}`}>• {fechaFormateada} - {item.descripcion}</div>);
-                        } else {
-                          elementos.push(<div key={`proc-${keyIdx++}`}>• {item.original}</div>);
-                        }
-                      });
-
-                      return elementos;
-                    })()}
-                  </div>
+                  <DraggableSectionList
+                    sectionName="procedimientos"
+                    items={multilineToArray(procedimientosText)}
+                    onItemsChange={(items) => handleSectionItemsChange("procedimientos", items)}
+                    onItemDropped={handleItemDropped}
+                    onItemRemoved={handleItemRemoved}
+                    onItemConfirmed={handleItemConfirmed}
+                  />
                 )}
               </div>
 
@@ -1880,7 +2055,7 @@ export default function ViewEditEPC() {
                         type="button"
                         className="icon-btn"
                         title="Confirmar edición de sección"
-                        onClick={() => setEditingInter(false)}
+                        onClick={() => { onSave(); setEditingInter(false); }}
                       >
                         <FaSave />
                       </button>
@@ -1894,22 +2069,14 @@ export default function ViewEditEPC() {
                     onChange={(e) => setInterconsultasText(e.target.value)}
                   />
                 ) : (
-                  <div className="gen-text-readonly interconsultas-list">
-                    {(() => {
-                      const lineas = interconsultasText.trim()
-                        ? interconsultasText.split(/\r?\n/).filter(t => t.trim())
-                        : [];
-
-                      if (!lineas.length) return "—";
-
-                      // Formato simplificado: solo bullets con "Fecha - Especialidad"
-                      return lineas.map((linea, idx) => {
-                        // Limpiar bullet si ya existe
-                        const texto = linea.trim().replace(/^•\s*/, '');
-                        return <div key={`inter-${idx}`}>• {texto}</div>;
-                      });
-                    })()}
-                  </div>
+                  <DraggableSectionList
+                    sectionName="interconsultas"
+                    items={multilineToArray(interconsultasText)}
+                    onItemsChange={(items) => handleSectionItemsChange("interconsultas", items)}
+                    onItemDropped={handleItemDropped}
+                    onItemRemoved={handleItemRemoved}
+                    onItemConfirmed={handleItemConfirmed}
+                  />
                 )}
               </div>
 
@@ -1936,7 +2103,7 @@ export default function ViewEditEPC() {
                         type="button"
                         className="icon-btn"
                         title="Confirmar edición de sección"
-                        onClick={() => setEditingIndAlta(false)}
+                        onClick={() => { onSave(); setEditingIndAlta(false); }}
                       >
                         <FaSave />
                       </button>
@@ -1969,6 +2136,7 @@ export default function ViewEditEPC() {
                 )}
               </div>
 
+
               {/* ========== OTROS DATOS DE INTERÉS (oculto si ÓBITO) ========== */}
               {!pacienteFallecido && (
                 <div className="otros-datos-interes">
@@ -1991,6 +2159,64 @@ export default function ViewEditEPC() {
                       <span className="btn-label">Determinaciones Laboratorio</span>
                     </button>
                   </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== PESTAÑA CORRECCIONES ========== */}
+      {activeTab === "corrections" && (
+        <div className="epc-layout history-tab">
+          <div className="epc-column full-width">
+            <div className="card card-history">
+              <div className="section-header">
+                <h3>📋 Correcciones realizadas</h3>
+                <div className="corrections-summary-tags" style={{ marginLeft: 12 }}>
+                  {correctionsSummary.move > 0 && (
+                    <span className="corr-tag corr-move">↔ {correctionsSummary.move} trasladados</span>
+                  )}
+                  {correctionsSummary.remove > 0 && (
+                    <span className="corr-tag corr-remove">✗ {correctionsSummary.remove} eliminados</span>
+                  )}
+                  {correctionsSummary.confirm > 0 && (
+                    <span className="corr-tag corr-confirm">✓ {correctionsSummary.confirm} confirmados</span>
+                  )}
+                </div>
+              </div>
+              {localCorrections.length === 0 ? (
+                <div className="empty-history">No hay correcciones registradas para esta epicrisis.</div>
+              ) : (
+                <div className="corrections-detail-list" style={{ maxHeight: "none" }}>
+                  {localCorrections.map((c, i) => (
+                    <div key={i} className={`correction-item correction-${c.action}`}>
+                      <span className="correction-action-icon">
+                        {c.action === "move" ? "↔" : c.action === "remove" ? "✗" : "✓"}
+                      </span>
+                      <span className="correction-item-text">{c.item}</span>
+                      <span className="correction-flow">
+                        <span className="correction-section-name">{c.from_section}</span>
+                        {c.action === "move" && c.to_section && (
+                          <>
+                            <span className="correction-arrow">→</span>
+                            <span className="correction-section-name">{c.to_section}</span>
+                          </>
+                        )}
+                        {c.action === "remove" && (
+                          <span className="corr-tag corr-remove" style={{ marginLeft: 6 }}>eliminado</span>
+                        )}
+                        {c.action === "confirm" && (
+                          <span className="corr-tag corr-confirm" style={{ marginLeft: 6 }}>confirmado</span>
+                        )}
+                      </span>
+                      {c.created_at && (
+                        <span style={{ fontSize: 11, color: "#94a3b8", marginLeft: 8, flexShrink: 0 }}>
+                          {new Date(c.created_at).toLocaleString("es-AR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

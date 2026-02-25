@@ -255,7 +255,11 @@ ainstein_fe/
     │   │   ├── 📄 HealthCheck.tsx         # Estado servicios FERRO
     │   │   ├── 📄 HealthCheck.css
     │   │   ├── 📄 TenantManager.tsx       # 🆕 Gestión multi-tenant
-    │   │   └── 📄 TenantManager.css
+    │   │   ├── 📄 TenantManager.css
+    │   │   ├── 📄 EPCControlDashboard.tsx # 🆕 Control de EPCs
+    │   │   ├── 📄 EPCControlDashboard.css
+    │   │   ├── 📄 SnomedDashboard.tsx    # 🆕 SNOMED CT browser
+    │   │   └── 📄 SnomedDashboard.css
     │   │
     │   │   # ─── Settings Module ───
     │   └── 📁 Settings/
@@ -322,6 +326,8 @@ VITE_API_URL=https://api.ainstein-epc.com
 | `/admin/costs` | `Admin/CostsDashboard.tsx` | Costos LLM |
 | `/admin/health` | `Admin/HealthCheck.tsx` | Estado servicios FERRO |
 | `/admin/tenants` | `Admin/TenantManager.tsx` | Gestión multi-tenant |
+| `/admin/epc-control` | `Admin/EPCControlDashboard.tsx` | 🆕 Control y monitoreo EPCs |
+| `/admin/snomed` | `Admin/SnomedDashboard.tsx` | 🆕 Browser SNOMED CT |
 | `/settings/branding` | `Settings/Branding.tsx` | Personalización |
 
 ---
@@ -798,4 +804,4 @@ Propiedad de **Zeron Team** - Todos los derechos reservados.
 
 ---
 
-*Última actualización: 2026-02-03 | AInstein Frontend v3.0.0*
+*Última actualización: 2026-02-25 | AInstein Frontend v3.0.0*

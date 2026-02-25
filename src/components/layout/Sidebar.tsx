@@ -13,6 +13,8 @@ import {
   FaDollarSign,
   FaBuilding,
   FaHome,
+  FaClipboardList,
+  FaStethoscope,
 } from "react-icons/fa";
 import { useAuth } from "@/auth/AuthContext";
 
@@ -69,6 +71,11 @@ export default function Sidebar({ open, onClose }: Props) {
                 label: "Feedback IA",
               },
               {
+                to: "/admin/epc-control",
+                icon: <FaClipboardList />,
+                label: "Control EPC",
+              },
+              {
                 to: "/admin/costs",
                 icon: <FaDollarSign />,
                 label: "Costos IA",
@@ -77,6 +84,16 @@ export default function Sidebar({ open, onClose }: Props) {
                 to: "/admin/health",
                 icon: <FaHeartbeat />,
                 label: "Estado Sistema",
+              },
+            ],
+          },
+          {
+            title: "Integraciones",
+            items: [
+              {
+                to: "/admin/snomed",
+                icon: <FaStethoscope />,
+                label: "SNOMED CT",
               },
             ],
           },
