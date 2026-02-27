@@ -197,7 +197,7 @@ export default function FeedbackDashboard() {
     const [stats, setStats] = useState<FeedbackStats | null>(null);
 
     // Estado para tabs y vista agrupada
-    const [activeTab, setActiveTab] = useState<"stats" | "grouped" | "learning" | "flow" | "corrections">("stats");
+    const [activeTab, setActiveTab] = useState<"stats" | "grouped" | "learning" | "corrections">("stats");
     const [groupedData, setGroupedData] = useState<GroupedEPC[]>([]);
     const [loadingGrouped, setLoadingGrouped] = useState(false);
     const [searchGrouped, setSearchGrouped] = useState("");
@@ -346,7 +346,7 @@ export default function FeedbackDashboard() {
         });
     }
 
-    function handleTabChange(tab: "stats" | "grouped" | "learning" | "flow" | "corrections") {
+    function handleTabChange(tab: "stats" | "grouped" | "learning" | "corrections") {
         setActiveTab(tab);
         if (tab === "grouped" && groupedData.length === 0) {
             loadGrouped();
@@ -512,12 +512,6 @@ export default function FeedbackDashboard() {
                             onClick={() => handleTabChange("learning")}
                         >
                             <FaBrain /> Aprendizaje
-                        </button>
-                        <button
-                            className={`fb-tab ${activeTab === "flow" ? "active" : ""}`}
-                            onClick={() => handleTabChange("flow")}
-                        >
-                            <FaChartLine /> Flujo
                         </button>
                     </div>
                     <button className="fb-btn-refresh" onClick={activeTab === "stats" ? loadStats : loadGrouped}>
@@ -1184,449 +1178,306 @@ export default function FeedbackDashboard() {
                 </div>
             )}
 
-            {/* ===================== TAB: FLUJO DE APRENDIZAJE ===================== */}
-            {activeTab === "flow" && (
-                <div className="fb-flow-wrap">
-                    {/* Header explicativo */}
-                    <div className="fb-flow-header-box">
-                        <FaBrain className="fb-flow-main-icon" />
-                        <div>
-                            <h2>¿Cómo aprende el sistema?</h2>
-                            <p>Cada vez que evalúas una sección de EPC, el sistema guarda tus preferencias y las usa para mejorar las futuras generaciones <strong>solo para ti</strong>.</p>
-                        </div>
-                    </div>
 
-                    {/* Explicación de las 3 preguntas */}
-                    <div className="fb-flow-questions-section">
-                        <h3>Las 3 preguntas clave</h3>
-                        <p className="fb-flow-subtitle">Cuando calificas "Parcial" o "Mal", respondes 3 preguntas que el sistema usa para aprender:</p>
 
-                        <div className="fb-flow-questions-grid">
-                            <div className="fb-flow-question-card">
-                                <div className="fb-flow-q-number">1</div>
-                                <div>
-                                    <h5>¿Tiene omisiones?</h5>
-                                    <p>Si respondes <strong>SÍ</strong> frecuentemente, el sistema aprenderá a incluir más información en esa sección.</p>
-                                </div>
-                            </div>
-                            <div className="fb-flow-question-card">
-                                <div className="fb-flow-q-number">2</div>
-                                <div>
-                                    <h5>¿Tiene repeticiones?</h5>
-                                    <p>Si respondes <strong>SÍ</strong> frecuentemente, el sistema aprenderá a evitar información redundante.</p>
-                                </div>
-                            </div>
-                            <div className="fb-flow-question-card">
-                                <div className="fb-flow-q-number">3</div>
-                                <div>
-                                    <h5>¿Es confuso o erróneo?</h5>
-                                    <p>Si respondes <strong>SÍ</strong> frecuentemente, el sistema aprenderá a ser más claro y preciso.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+{/* ===================== TAB: CORRECCIONES ===================== */ }
+{
+    activeTab === "corrections" && (
+        <div className="fb-corrections-view">
+            {loadingCorrections && <div className="fb-loading">Cargando correcciones...</div>}
 
-                    {/* Flujo paso a paso */}
-                    <div className="fb-flow-steps-section">
-                        <h3>Flujo de aprendizaje paso a paso</h3>
-
-                        <div className="fb-flow-steps">
-                            <div className="fb-flow-step-box">
-                                <div className="fb-flow-step-num">1</div>
-                                <div className="fb-flow-step-text">
-                                    <h5>Evalúas la EPC</h5>
-                                    <p>Calificas cada sección como <span className="tag-ok">OK</span>, <span className="tag-partial">Parcial</span> o <span className="tag-bad">Mal</span>. Si no está OK, respondes las 3 preguntas y opcionalmente agregas un comentario.</p>
-                                </div>
-                            </div>
-
-                            <div className="fb-flow-step-box">
-                                <div className="fb-flow-step-num">2</div>
-                                <div className="fb-flow-step-text">
-                                    <h5>Se guarda tu feedback</h5>
-                                    <p>El sistema almacena: <strong>tu usuario</strong>, <strong>la sección</strong>, <strong>la calificación</strong>, <strong>las 3 respuestas SI/NO</strong>, y <strong>tu comentario</strong>.</p>
-                                </div>
-                            </div>
-
-                            <div className="fb-flow-step-box">
-                                <div className="fb-flow-step-num">3</div>
-                                <div className="fb-flow-step-text">
-                                    <h5>Se clasifica la regla</h5>
-                                    <p><strong>OK</strong> = "Mantener este estilo" | <strong>Parcial/Mal</strong> = "Evitar esto" + análisis de las 3 preguntas.</p>
-                                </div>
-                            </div>
-
-                            <div className="fb-flow-step-box">
-                                <div className="fb-flow-step-num">4</div>
-                                <div className="fb-flow-step-text">
-                                    <h5>Próxima generación</h5>
-                                    <p>Cuando generas una nueva EPC, el sistema busca tus <strong>últimos 50 feedbacks</strong> y extrae las reglas más importantes.</p>
-                                </div>
-                            </div>
-
-                            <div className="fb-flow-step-box">
-                                <div className="fb-flow-step-num">5</div>
-                                <div className="fb-flow-step-text">
-                                    <h5>Se aplican las reglas</h5>
-                                    <p>Para cada sección, se incluyen hasta <strong>3 reglas de texto</strong> + <strong>alertas automáticas</strong> si respondiste SÍ a las preguntas 2+ veces.</p>
-                                </div>
-                            </div>
-
-                            <div className="fb-flow-step-box final">
-                                <div className="fb-flow-step-num final">✓</div>
-                                <div className="fb-flow-step-text">
-                                    <h5>IA genera personalizada</h5>
-                                    <p>La inteligencia artificial recibe tus preferencias y genera la EPC adaptada a <strong>tu estilo</strong>.</p>
-                                    <code>PARA 'evolucion': ⚠️ Evitar omisiones (reportado 3 veces)</code>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Info adicional */}
-                    <div className="fb-flow-info-grid">
-                        <div className="fb-flow-info-card green">
-                            <FaCheckCircle />
-                            <div>
-                                <h5>Personalizado</h5>
-                                <p>Cada médico tiene sus propias reglas, el aprendizaje es individual.</p>
-                            </div>
-                        </div>
-                        <div className="fb-flow-info-card blue">
-                            <FaLightbulb />
-                            <div>
-                                <h5>Por sección</h5>
-                                <p>Evolucion, Procedimientos, etc. aprenden de forma independiente.</p>
-                            </div>
-                        </div>
-                        <div className="fb-flow-info-card purple">
-                            <FaBrain />
-                            <div>
-                                <h5>Acumulativo</h5>
-                                <p>Mientras más evalúes, mejor entiende el sistema tus preferencias.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Stats */}
-                    {stats && (
-                        <div className="fb-flow-stats-compact">
-                            <div className="fb-flow-stat-item">
-                                <span className="value">{stats.summary.total}</span>
-                                <span className="label">Feedbacks</span>
-                            </div>
-                            <div className="fb-flow-stat-item">
-                                <span className="value">{Object.keys(stats.by_section).length}</span>
-                                <span className="label">Secciones</span>
-                            </div>
-                            <div className="fb-flow-stat-item green">
-                                <span className="value">{stats.summary.ok_pct}%</span>
-                                <span className="label">Éxito</span>
-                            </div>
-                            {stats.questions_summary && (
-                                <div className="fb-flow-stat-item orange">
-                                    <span className="value">
-                                        {stats.questions_summary.omissions + stats.questions_summary.repetitions + stats.questions_summary.confusing}
-                                    </span>
-                                    <span className="label">Problemas detectados</span>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* ===================== TAB: CORRECCIONES ===================== */}
-            {activeTab === "corrections" && (
-                <div className="fb-corrections-view">
-                    {loadingCorrections && <div className="fb-loading">Cargando correcciones...</div>}
-
-                    {!loadingCorrections && (
-                        <>
-                            {/* Cards de resumen por estado de aprobación */}
-                            {(() => {
-                                const counts = { pending: 0, approved: 0, rejected: 0, consultar: 0 };
-                                correctionsData.forEach(c => {
-                                    const s = c.approval_status || "pending";
-                                    if (s in counts) counts[s as keyof typeof counts]++;
-                                });
-                                return (
-                                    <div className="fb-summary-grid">
-                                        <div className="fb-card fb-card-partial">
-                                            <div className="fb-card-icon">⏳</div>
-                                            <div className="fb-card-data">
-                                                <div className="fb-card-value">{counts.pending}</div>
-                                                <div className="fb-card-label">Pendientes</div>
-                                            </div>
-                                        </div>
-                                        <div className="fb-card fb-card-ok">
-                                            <div className="fb-card-icon"><FaCheck /></div>
-                                            <div className="fb-card-data">
-                                                <div className="fb-card-value">{counts.approved}</div>
-                                                <div className="fb-card-label">Aprobadas</div>
-                                            </div>
-                                        </div>
-                                        <div className="fb-card fb-card-bad">
-                                            <div className="fb-card-icon"><FaTimes /></div>
-                                            <div className="fb-card-data">
-                                                <div className="fb-card-value">{counts.rejected}</div>
-                                                <div className="fb-card-label">Rechazadas</div>
-                                            </div>
-                                        </div>
-                                        <div className="fb-card fb-card-total">
-                                            <div className="fb-card-icon"><FaSearch /></div>
-                                            <div className="fb-card-data">
-                                                <div className="fb-card-value">{counts.consultar}</div>
-                                                <div className="fb-card-label">A consultar</div>
-                                            </div>
-                                        </div>
+            {!loadingCorrections && (
+                <>
+                    {/* Cards de resumen por estado de aprobación */}
+                    {(() => {
+                        const counts = { pending: 0, approved: 0, rejected: 0, consultar: 0 };
+                        correctionsData.forEach(c => {
+                            const s = c.approval_status || "pending";
+                            if (s in counts) counts[s as keyof typeof counts]++;
+                        });
+                        return (
+                            <div className="fb-summary-grid">
+                                <div className="fb-card fb-card-partial">
+                                    <div className="fb-card-icon">⏳</div>
+                                    <div className="fb-card-data">
+                                        <div className="fb-card-value">{counts.pending}</div>
+                                        <div className="fb-card-label">Pendientes</div>
                                     </div>
-                                );
-                            })()}
+                                </div>
+                                <div className="fb-card fb-card-ok">
+                                    <div className="fb-card-icon"><FaCheck /></div>
+                                    <div className="fb-card-data">
+                                        <div className="fb-card-value">{counts.approved}</div>
+                                        <div className="fb-card-label">Aprobadas</div>
+                                    </div>
+                                </div>
+                                <div className="fb-card fb-card-bad">
+                                    <div className="fb-card-icon"><FaTimes /></div>
+                                    <div className="fb-card-data">
+                                        <div className="fb-card-value">{counts.rejected}</div>
+                                        <div className="fb-card-label">Rechazadas</div>
+                                    </div>
+                                </div>
+                                <div className="fb-card fb-card-total">
+                                    <div className="fb-card-icon"><FaSearch /></div>
+                                    <div className="fb-card-data">
+                                        <div className="fb-card-value">{counts.consultar}</div>
+                                        <div className="fb-card-label">A consultar</div>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
 
-                            {/* Lista de correcciones */}
-                            <div className="fb-panel">
-                                <h2>📋 Detalle de correcciones</h2>
-                                {correctionsData.length === 0 ? (
-                                    <div className="fb-empty">No hay correcciones registradas aún.</div>
-                                ) : (
-                                    <div className="fb-table-wrap">
-                                        <table className="fb-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Fecha</th>
-                                                    <th>Paciente</th>
-                                                    <th>Acción</th>
-                                                    <th>Item</th>
-                                                    <th>Origen</th>
-                                                    <th>Destino</th>
-                                                    <th>Estado</th>
-                                                    <th>EPC</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {correctionsData.map((c, i) => (
-                                                    <tr key={c._id || i}>
-                                                        <td className="fb-td-date" title={c.created_at || ""}>
-                                                            {c.created_at ? timeAgo(c.created_at) : "—"}
-                                                        </td>
-                                                        <td className="fb-td-patient">
-                                                            {c.patient_name ? (
-                                                                <span className="fb-corr-patient" title={c.patient_id || ""}>
-                                                                    <FaUserMd style={{ marginRight: 4, opacity: 0.6 }} />
-                                                                    {c.patient_name}
-                                                                </span>
-                                                            ) : (
-                                                                <span style={{ color: "#94a3b8", fontSize: 12 }}>—</span>
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            <span className={`fb-corr-action-badge fb-corr-${c.action}`}>
-                                                                {c.action === "move" ? "↔ Traslado" : c.action === "remove" ? "✗ Eliminado" : "✓ Confirmado"}
+                    {/* Lista de correcciones */}
+                    <div className="fb-panel">
+                        <h2>📋 Detalle de correcciones</h2>
+                        {correctionsData.length === 0 ? (
+                            <div className="fb-empty">No hay correcciones registradas aún.</div>
+                        ) : (
+                            <div className="fb-table-wrap">
+                                <table className="fb-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Paciente</th>
+                                            <th>Acción</th>
+                                            <th>Item</th>
+                                            <th>Origen</th>
+                                            <th>Destino</th>
+                                            <th>Estado</th>
+                                            <th>EPC</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {correctionsData.map((c, i) => (
+                                            <tr key={c._id || i}>
+                                                <td className="fb-td-date" title={c.created_at || ""}>
+                                                    {c.created_at ? timeAgo(c.created_at) : "—"}
+                                                </td>
+                                                <td className="fb-td-patient">
+                                                    {c.patient_name ? (
+                                                        <span className="fb-corr-patient" title={c.patient_id || ""}>
+                                                            <FaUserMd style={{ marginRight: 4, opacity: 0.6 }} />
+                                                            {c.patient_name}
+                                                        </span>
+                                                    ) : (
+                                                        <span style={{ color: "#94a3b8", fontSize: 12 }}>—</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <span className={`fb-corr-action-badge fb-corr-${c.action}`}>
+                                                        {c.action === "move" ? "↔ Traslado" : c.action === "remove" ? "✗ Eliminado" : "✓ Confirmado"}
+                                                    </span>
+                                                </td>
+                                                <td className="fb-td-text">{c.item}</td>
+                                                <td>
+                                                    <span className="fb-corr-section">{SECTION_LABELS[c.from_section] || c.from_section}</span>
+                                                </td>
+                                                <td>
+                                                    {c.action === "move" && c.to_section ? (
+                                                        <span className="fb-corr-section">{SECTION_LABELS[c.to_section] || c.to_section}</span>
+                                                    ) : (
+                                                        <span style={{ color: "#94a3b8" }}>—</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {c.approval_status === "approved" ? (
+                                                        <div className="fb-corr-status-resolved">
+                                                            <span className="fb-corr-status-badge fb-corr-approved" title={`Aprobada por ${c.approved_by || "—"}`}>
+                                                                <FaCheck /> Aprobada
                                                             </span>
-                                                        </td>
-                                                        <td className="fb-td-text">{c.item}</td>
-                                                        <td>
-                                                            <span className="fb-corr-section">{SECTION_LABELS[c.from_section] || c.from_section}</span>
-                                                        </td>
-                                                        <td>
-                                                            {c.action === "move" && c.to_section ? (
-                                                                <span className="fb-corr-section">{SECTION_LABELS[c.to_section] || c.to_section}</span>
-                                                            ) : (
-                                                                <span style={{ color: "#94a3b8" }}>—</span>
-                                                            )}
-                                                        </td>
-                                                        <td>
-                                                            {c.approval_status === "approved" ? (
-                                                                <div className="fb-corr-status-resolved">
-                                                                    <span className="fb-corr-status-badge fb-corr-approved" title={`Aprobada por ${c.approved_by || "—"}`}>
-                                                                        <FaCheck /> Aprobada
-                                                                    </span>
-                                                                    <button
-                                                                        className="fb-corr-revoke-btn"
-                                                                        title="Revocar aprobación"
-                                                                        disabled={approvingId === c._id}
-                                                                        onClick={() => revokeApproval(c._id)}
-                                                                    >
-                                                                        Revocar
-                                                                    </button>
-                                                                </div>
-                                                            ) : c.approval_status === "rejected" ? (
-                                                                <div className="fb-corr-status-resolved">
-                                                                    <span className="fb-corr-status-badge fb-corr-rejected" title={`Rechazada por ${c.approved_by || "—"}`}>
-                                                                        <FaTimes /> Rechazada
-                                                                    </span>
-                                                                    <button
-                                                                        className="fb-corr-revoke-btn"
-                                                                        title="Revocar rechazo"
-                                                                        disabled={approvingId === c._id}
-                                                                        onClick={() => revokeApproval(c._id)}
-                                                                    >
-                                                                        Revocar
-                                                                    </button>
-                                                                </div>
-                                                            ) : c.approval_status === "consultar" ? (
-                                                                <div className="fb-corr-status-resolved">
-                                                                    <span className="fb-corr-status-badge fb-corr-consultar" title="Pendiente de consulta">
-                                                                        <FaSearch /> A consultar
-                                                                    </span>
-                                                                    <button
-                                                                        className="fb-corr-revoke-btn"
-                                                                        title="Volver a pendiente"
-                                                                        disabled={approvingId === c._id}
-                                                                        onClick={() => revokeApproval(c._id)}
-                                                                    >
-                                                                        Revocar
-                                                                    </button>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="fb-corr-approval-actions">
-                                                                    <button
-                                                                        className="fb-corr-approve-btn"
-                                                                        title="Aprobar corrección"
-                                                                        disabled={approvingId === c._id}
-                                                                        onClick={() => requestApproval(c._id, "approved", c.item)}
-                                                                    >
-                                                                        <FaCheck />
-                                                                    </button>
-                                                                    <button
-                                                                        className="fb-corr-reject-btn"
-                                                                        title="Rechazar corrección"
-                                                                        disabled={approvingId === c._id}
-                                                                        onClick={() => requestApproval(c._id, "rejected", c.item)}
-                                                                    >
-                                                                        <FaTimes />
-                                                                    </button>
-                                                                    <button
-                                                                        className="fb-corr-consultar-btn"
-                                                                        title="A consultar más tarde"
-                                                                        disabled={approvingId === c._id}
-                                                                        onClick={() => markAsConsultar(c._id)}
-                                                                    >
-                                                                        <FaSearch />
-                                                                    </button>
-                                                                </div>
-                                                            )}
-                                                        </td>
-                                                        <td style={{ fontSize: 11, color: "#64748b" }}>{c.epc_id?.slice(0, 8)}...</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
+                                                            <button
+                                                                className="fb-corr-revoke-btn"
+                                                                title="Revocar aprobación"
+                                                                disabled={approvingId === c._id}
+                                                                onClick={() => revokeApproval(c._id)}
+                                                            >
+                                                                Revocar
+                                                            </button>
+                                                        </div>
+                                                    ) : c.approval_status === "rejected" ? (
+                                                        <div className="fb-corr-status-resolved">
+                                                            <span className="fb-corr-status-badge fb-corr-rejected" title={`Rechazada por ${c.approved_by || "—"}`}>
+                                                                <FaTimes /> Rechazada
+                                                            </span>
+                                                            <button
+                                                                className="fb-corr-revoke-btn"
+                                                                title="Revocar rechazo"
+                                                                disabled={approvingId === c._id}
+                                                                onClick={() => revokeApproval(c._id)}
+                                                            >
+                                                                Revocar
+                                                            </button>
+                                                        </div>
+                                                    ) : c.approval_status === "consultar" ? (
+                                                        <div className="fb-corr-status-resolved">
+                                                            <span className="fb-corr-status-badge fb-corr-consultar" title="Pendiente de consulta">
+                                                                <FaSearch /> A consultar
+                                                            </span>
+                                                            <button
+                                                                className="fb-corr-revoke-btn"
+                                                                title="Volver a pendiente"
+                                                                disabled={approvingId === c._id}
+                                                                onClick={() => revokeApproval(c._id)}
+                                                            >
+                                                                Revocar
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="fb-corr-approval-actions">
+                                                            <button
+                                                                className="fb-corr-approve-btn"
+                                                                title="Aprobar corrección"
+                                                                disabled={approvingId === c._id}
+                                                                onClick={() => requestApproval(c._id, "approved", c.item)}
+                                                            >
+                                                                <FaCheck />
+                                                            </button>
+                                                            <button
+                                                                className="fb-corr-reject-btn"
+                                                                title="Rechazar corrección"
+                                                                disabled={approvingId === c._id}
+                                                                onClick={() => requestApproval(c._id, "rejected", c.item)}
+                                                            >
+                                                                <FaTimes />
+                                                            </button>
+                                                            <button
+                                                                className="fb-corr-consultar-btn"
+                                                                title="A consultar más tarde"
+                                                                disabled={approvingId === c._id}
+                                                                onClick={() => markAsConsultar(c._id)}
+                                                            >
+                                                                <FaSearch />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td style={{ fontSize: 11, color: "#64748b" }}>{c.epc_id?.slice(0, 8)}...</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
+                        )}
+                    </div>
 
-                            {/* Diccionario de mapeo aprendido */}
-                            <div className="fb-panel fb-panel-dictionary">
-                                <h2>📖 Diccionario de Mapeo Aprendido</h2>
-                                <p className="fb-dictionary-desc">
-                                    Reglas aprendidas a partir de correcciones aprobadas. El sistema usará estas reglas para clasificar items similares automáticamente.
-                                </p>
-                                {dictionaryRules.length === 0 ? (
-                                    <div className="fb-empty">No hay reglas aprendidas aún. Apruebe correcciones para generar reglas.</div>
-                                ) : (
-                                    <div className="fb-table-wrap">
-                                        <table className="fb-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Item (patrón)</th>
-                                                    <th>Sección destino</th>
-                                                    <th>Frecuencia</th>
-                                                    <th>Última actualización</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {dictionaryRules.map((rule) => (
-                                                    <tr key={rule.id}>
-                                                        <td className="fb-td-text"><strong>{rule.item_pattern}</strong></td>
-                                                        <td>
-                                                            <span className="fb-corr-section">{SECTION_LABELS[rule.target_section] || rule.target_section}</span>
-                                                        </td>
-                                                        <td>
-                                                            <span className="fb-dict-freq">{rule.frequency}×</span>
-                                                        </td>
-                                                        <td className="fb-td-date">{rule.updated_at ? timeAgo(rule.updated_at) : "—"}</td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                )}
+                    {/* Diccionario de mapeo aprendido */}
+                    <div className="fb-panel fb-panel-dictionary">
+                        <h2>📖 Diccionario de Mapeo Aprendido</h2>
+                        <p className="fb-dictionary-desc">
+                            Reglas aprendidas a partir de correcciones aprobadas. El sistema usará estas reglas para clasificar items similares automáticamente.
+                        </p>
+                        {dictionaryRules.length === 0 ? (
+                            <div className="fb-empty">No hay reglas aprendidas aún. Apruebe correcciones para generar reglas.</div>
+                        ) : (
+                            <div className="fb-table-wrap">
+                                <table className="fb-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Item (patrón)</th>
+                                            <th>Sección destino</th>
+                                            <th>Frecuencia</th>
+                                            <th>Última actualización</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {dictionaryRules.map((rule) => (
+                                            <tr key={rule.id}>
+                                                <td className="fb-td-text"><strong>{rule.item_pattern}</strong></td>
+                                                <td>
+                                                    <span className="fb-corr-section">{SECTION_LABELS[rule.target_section] || rule.target_section}</span>
+                                                </td>
+                                                <td>
+                                                    <span className="fb-dict-freq">{rule.frequency}×</span>
+                                                </td>
+                                                <td className="fb-td-date">{rule.updated_at ? timeAgo(rule.updated_at) : "—"}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
-                        </>
-                    )}
-                </div>
-            )}
-
-            {/* Modal de confirmación de aprobación/rechazo */}
-            {pendingAction && (
-                <div className="fb-confirm-overlay" onClick={() => setPendingAction(null)}>
-                    <div className="fb-confirm-modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="fb-confirm-header">
-                            <FaExclamationTriangle style={{ color: pendingAction.status === "approved" ? "#16a34a" : "#dc2626", fontSize: 20 }} />
-                            <h3>{pendingAction.status === "approved" ? "Confirmar aprobación" : "Confirmar rechazo"}</h3>
-                        </div>
-                        <div className="fb-confirm-body">
-                            <p className="fb-confirm-item-preview">
-                                <strong>Item:</strong> {pendingAction.itemText?.slice(0, 80)}{(pendingAction.itemText?.length || 0) > 80 ? "..." : ""}
-                            </p>
-                            {pendingAction.status === "approved" ? (
-                                <div className="fb-confirm-warning">
-                                    <FaExclamationTriangle style={{ color: "#d97706", flexShrink: 0 }} />
-                                    <p>Al <strong>aprobar</strong> esta corrección, se creará una <strong>regla de aprendizaje</strong> en el diccionario de mapeo. Esta acción influirá en futuras clasificaciones del sistema.</p>
-                                </div>
-                            ) : (
-                                <div className="fb-confirm-warning fb-confirm-warning-red">
-                                    <FaExclamationTriangle style={{ color: "#dc2626", flexShrink: 0 }} />
-                                    <p>Al <strong>rechazar</strong> esta corrección, se descartará y no se creará ninguna regla de aprendizaje.</p>
-                                </div>
-                            )}
-                            <p className="fb-confirm-hint">
-                                Si no está seguro, puede usar la opción <strong>"A consultar"</strong> para revisarla más tarde.
-                            </p>
-                        </div>
-                        <div className="fb-confirm-actions">
-                            <button
-                                className="fb-confirm-cancel-btn"
-                                onClick={() => setPendingAction(null)}
-                            >
-                                Cancelar
-                            </button>
-                            <button
-                                className="fb-confirm-consultar-btn"
-                                onClick={() => { markAsConsultar(pendingAction.correctionId); setPendingAction(null); }}
-                            >
-                                <FaSearch /> A consultar
-                            </button>
-                            <button
-                                className={`fb-confirm-ok-btn ${pendingAction.status === "approved" ? "fb-confirm-ok-approve" : "fb-confirm-ok-reject"}`}
-                                onClick={() => approveCorrection(pendingAction.correctionId, pendingAction.status)}
-                            >
-                                {pendingAction.status === "approved" ? <><FaCheck /> Sí, aprobar</> : <><FaTimes /> Sí, rechazar</>}
-                            </button>
-                        </div>
+                        )}
                     </div>
-                </div>
-            )}
-
-            {/* Modal de información de métricas */}
-            {infoModal.open && (
-                <div className="fb-info-modal-overlay" onClick={() => setInfoModal({ ...infoModal, open: false })}>
-                    <div className="fb-info-modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="fb-info-modal-header">
-                            <h3>{infoModal.title}</h3>
-                            <button className="fb-info-modal-close" onClick={() => setInfoModal({ ...infoModal, open: false })}>
-                                <FaTimes />
-                            </button>
-                        </div>
-                        <div className="fb-info-modal-content">
-                            {infoModal.content.split('\n').map((line, i) => (
-                                <p key={i}>{line}</p>
-                            ))}
-                        </div>
-                    </div>
-                </div>
+                </>
             )}
         </div>
+    )
+}
+
+{/* Modal de confirmación de aprobación/rechazo */ }
+{
+    pendingAction && (
+        <div className="fb-confirm-overlay" onClick={() => setPendingAction(null)}>
+            <div className="fb-confirm-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="fb-confirm-header">
+                    <FaExclamationTriangle style={{ color: pendingAction.status === "approved" ? "#16a34a" : "#dc2626", fontSize: 20 }} />
+                    <h3>{pendingAction.status === "approved" ? "Confirmar aprobación" : "Confirmar rechazo"}</h3>
+                </div>
+                <div className="fb-confirm-body">
+                    <p className="fb-confirm-item-preview">
+                        <strong>Item:</strong> {pendingAction.itemText?.slice(0, 80)}{(pendingAction.itemText?.length || 0) > 80 ? "..." : ""}
+                    </p>
+                    {pendingAction.status === "approved" ? (
+                        <div className="fb-confirm-warning">
+                            <FaExclamationTriangle style={{ color: "#d97706", flexShrink: 0 }} />
+                            <p>Al <strong>aprobar</strong> esta corrección, se creará una <strong>regla de aprendizaje</strong> en el diccionario de mapeo. Esta acción influirá en futuras clasificaciones del sistema.</p>
+                        </div>
+                    ) : (
+                        <div className="fb-confirm-warning fb-confirm-warning-red">
+                            <FaExclamationTriangle style={{ color: "#dc2626", flexShrink: 0 }} />
+                            <p>Al <strong>rechazar</strong> esta corrección, se descartará y no se creará ninguna regla de aprendizaje.</p>
+                        </div>
+                    )}
+                    <p className="fb-confirm-hint">
+                        Si no está seguro, puede usar la opción <strong>"A consultar"</strong> para revisarla más tarde.
+                    </p>
+                </div>
+                <div className="fb-confirm-actions">
+                    <button
+                        className="fb-confirm-cancel-btn"
+                        onClick={() => setPendingAction(null)}
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        className="fb-confirm-consultar-btn"
+                        onClick={() => { markAsConsultar(pendingAction.correctionId); setPendingAction(null); }}
+                    >
+                        <FaSearch /> A consultar
+                    </button>
+                    <button
+                        className={`fb-confirm-ok-btn ${pendingAction.status === "approved" ? "fb-confirm-ok-approve" : "fb-confirm-ok-reject"}`}
+                        onClick={() => approveCorrection(pendingAction.correctionId, pendingAction.status)}
+                    >
+                        {pendingAction.status === "approved" ? <><FaCheck /> Sí, aprobar</> : <><FaTimes /> Sí, rechazar</>}
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+{/* Modal de información de métricas */ }
+{
+    infoModal.open && (
+        <div className="fb-info-modal-overlay" onClick={() => setInfoModal({ ...infoModal, open: false })}>
+            <div className="fb-info-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="fb-info-modal-header">
+                    <h3>{infoModal.title}</h3>
+                    <button className="fb-info-modal-close" onClick={() => setInfoModal({ ...infoModal, open: false })}>
+                        <FaTimes />
+                    </button>
+                </div>
+                <div className="fb-info-modal-content">
+                    {infoModal.content.split('\n').map((line, i) => (
+                        <p key={i}>{line}</p>
+                    ))}
+                </div>
+            </div>
+        </div>
+    )
+}
+        </div >
     );
 }

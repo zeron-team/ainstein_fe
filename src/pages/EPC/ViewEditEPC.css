@@ -1902,3 +1902,265 @@ textarea.gen-textarea:focus {
   font-weight: 700;
   font-size: 13px;
 }
+
+/* ============================================ */
+/* HCE Viewer Modal                            */
+/* ============================================ */
+
+/* Tab button - "Ver HCE" */
+.tab.tab-hce {
+  background: linear-gradient(135deg, #0d9488, #14b8a6);
+  color: #ffffff !important;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.25);
+}
+
+.tab.tab-hce:hover {
+  background: linear-gradient(135deg, #0f766e, #0d9488);
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
+  transform: translateY(-1px);
+}
+
+.tab.tab-hce svg {
+  font-size: 14px;
+}
+
+/* HCE Large Modal */
+.hce-modal-overlay {
+  z-index: 1100;
+}
+
+.hce-modal-dialog {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 95%;
+  max-width: 1000px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.hce-modal-dialog .modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.hce-modal-dialog .modal-header h4 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f766e;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hce-registros-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  background: rgba(13, 148, 136, 0.1);
+  border: 1px solid rgba(13, 148, 136, 0.3);
+  color: #0d9488;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hce-modal-dialog .modal-close {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s;
+}
+
+.hce-modal-dialog .modal-close:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #1e293b;
+}
+
+.hce-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+  min-height: 300px;
+}
+
+.hce-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #0d9488;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.hce-loading .spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hce-text-content {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #1e293b;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.hce-text-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.hce-text-content::-webkit-scrollbar-track {
+  background: rgba(148, 163, 184, 0.1);
+  border-radius: 4px;
+}
+
+.hce-text-content::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 4px;
+}
+
+.hce-modal-dialog .modal-footer {
+  padding: 12px 24px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+/* HCE Search Bar */
+.hce-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  border-bottom: 1px solid var(--border);
+  background: #f8fafc;
+  flex-shrink: 0;
+}
+
+.hce-search-icon {
+  color: #94a3b8;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.hce-search-input {
+  flex: 1;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 14px;
+  color: #1e293b;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.hce-search-input:focus {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
+}
+
+.hce-search-input::placeholder {
+  color: #94a3b8;
+}
+
+.hce-search-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0d9488;
+  white-space: nowrap;
+  background: rgba(13, 148, 136, 0.08);
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.hce-search-clear {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.hce-search-clear:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: #64748b;
+}
+
+/* HCE Highlight */
+.hce-highlight {
+  background: #fef08a;
+  color: #854d0e;
+  padding: 1px 2px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.hce-highlight-active {
+  background: #fb923c;
+  color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.4);
+}
+
+/* Search nav buttons */
+.hce-search-nav {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  color: #475569;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  transition: all 0.15s;
+}
+
+.hce-search-nav:hover {
+  background: rgba(13, 148, 136, 0.1);
+  border-color: #0d9488;
+  color: #0d9488;
+}
+
+.hce-search-none {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}

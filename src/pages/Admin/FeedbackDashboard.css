@@ -2,8 +2,6 @@
 
 .fb-dash-wrap {
     padding: 24px;
-    max-width: 1400px;
-    margin: 0 auto;
 }
 
 .fb-dash-header {
@@ -1143,9 +1141,9 @@
 }
 
 .fb-learning-stats-cards {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
     gap: 16px;
-    flex-wrap: wrap;
 }
 
 .fb-ls-card {
@@ -1209,7 +1207,7 @@
 
 .fb-learning-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 20px;
 }
 
@@ -1681,8 +1679,6 @@
     display: flex;
     flex-direction: column;
     gap: 24px;
-    max-width: 800px;
-    margin: 0 auto;
 }
 
 /* Vertical Timeline */

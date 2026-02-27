@@ -21,6 +21,7 @@ import HealthCheck from "@/pages/Admin/HealthCheck";
 import TenantManager from "@/pages/Admin/TenantManager";
 import EPCControlDashboard from "@/pages/Admin/EPCControlDashboard";
 import SnomedDashboard from "@/pages/Admin/SnomedDashboard";
+import GoldenRules from "@/pages/Admin/GoldenRules";
 import ErrorPage from "@/pages/ErrorPage";
 import AinsteinWsPage from "@/pages/AinsteinWsPage";
 
@@ -65,6 +66,7 @@ const router = createBrowserRouter([
               { path: "admin/tenants", element: <TenantManager /> },
               { path: "admin/epc-control", element: <EPCControlDashboard /> },
               { path: "admin/snomed", element: <SnomedDashboard /> },
+              { path: "admin/golden-rules", element: <GoldenRules /> },
             ],
           },
         ],

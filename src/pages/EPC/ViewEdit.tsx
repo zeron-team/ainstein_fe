@@ -21,6 +21,10 @@ import {
   FaMeh,
   FaTimes,
   FaGripVertical,
+  FaBookMedical,
+  FaSearch,
+  FaChevronUp,
+  FaChevronDown,
 } from "react-icons/fa";
 
 import "./ViewEditEPC.css";
@@ -532,6 +536,14 @@ export default function ViewEditEPC() {
   const [farmacologiaModalOpen, setFarmacologiaModalOpen] = useState(false);
   // Modal de Laboratorio completo (Otros Datos de Interés)  
   const [laboratorioModalOpen, setLaboratorioModalOpen] = useState(false);
+
+  // Modal de HCE (Historia Clínica Electrónica)
+  const [hceModalOpen, setHceModalOpen] = useState(false);
+  const [hceModalText, setHceModalText] = useState("");
+  const [hceModalLoading, setHceModalLoading] = useState(false);
+  const [hceModalRegistros, setHceModalRegistros] = useState(0);
+  const [hceSearch, setHceSearch] = useState("");
+  const [hceSearchIdx, setHceSearchIdx] = useState(0);
 
 
   // Estado para especialidades de interconsultas expandidas
@@ -1509,6 +1521,33 @@ export default function ViewEditEPC() {
           onClick={() => setActiveTab("epc")}
         >
           Epicrisis
+        </button>
+        <button
+          type="button"
+          className="tab tab-hce"
+          title="Ver Historia Clínica Electrónica"
+          onClick={async () => {
+            const hceId = generated?.hce_source_id;
+            if (!hceId) {
+              setToastErr("No hay HCE origen asociada a esta EPC.");
+              setTimeout(() => setToastErr(null), 3000);
+              return;
+            }
+            setHceModalOpen(true);
+            setHceModalLoading(true);
+            setHceModalText("");
+            try {
+              const { data } = await api.get(`/hce/${hceId}/readable`);
+              setHceModalText(data.text || "Sin contenido.");
+              setHceModalRegistros(data.registros || 0);
+            } catch (err: any) {
+              setHceModalText("Error al cargar la HCE: " + (err?.response?.data?.detail || err.message));
+            } finally {
+              setHceModalLoading(false);
+            }
+          }}
+        >
+          <FaBookMedical /> Ver HCE
         </button>
         <button
           type="button"
@@ -2674,6 +2713,155 @@ export default function ViewEditEPC() {
               <button
                 className="btn primary"
                 onClick={() => setLaboratorioModalOpen(false)}
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================= MODAL HCE ========================= */}
+      {hceModalOpen && (
+        <div className="modal-overlay hce-modal-overlay" onClick={() => { setHceModalOpen(false); setHceSearch(""); }}>
+          <div className="modal-dialog hce-modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h4>
+                <FaBookMedical /> Historia Clínica Electrónica
+                {hceModalRegistros > 0 && (
+                  <span className="hce-registros-badge">{hceModalRegistros} registros</span>
+                )}
+              </h4>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={() => { setHceModalOpen(false); setHceSearch(""); }}
+              >
+                <FaTimes />
+              </button>
+            </div>
+            {/* Search bar */}
+            {!hceModalLoading && (
+              <div className="hce-search-bar">
+                <FaSearch className="hce-search-icon" />
+                <input
+                  type="text"
+                  className="hce-search-input"
+                  placeholder="Buscar en la HCE..."
+                  value={hceSearch}
+                  onChange={(e) => { setHceSearch(e.target.value); setHceSearchIdx(0); }}
+                  onKeyDown={(e) => {
+                    if (!hceSearch) return;
+                    const q = hceSearch.toLowerCase();
+                    const total = hceModalText.toLowerCase().split(q).length - 1;
+                    if (total === 0) return;
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      const next = (hceSearchIdx + 1) % total;
+                      setHceSearchIdx(next);
+                      setTimeout(() => { const el = document.querySelector(".hce-highlight-active"); el?.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50);
+                    } else if (e.key === "Enter" && e.shiftKey) {
+                      e.preventDefault();
+                      const prev = (hceSearchIdx - 1 + total) % total;
+                      setHceSearchIdx(prev);
+                      setTimeout(() => { const el = document.querySelector(".hce-highlight-active"); el?.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50);
+                    }
+                  }}
+                  autoFocus
+                />
+                {hceSearch && (() => {
+                  const q = hceSearch.toLowerCase();
+                  const total = hceModalText.toLowerCase().split(q).length - 1;
+                  return total > 0 ? (
+                    <>
+                      <button
+                        className="hce-search-nav"
+                        title="Anterior (Shift+Enter)"
+                        onClick={() => {
+                          const prev = (hceSearchIdx - 1 + total) % total;
+                          setHceSearchIdx(prev);
+                          setTimeout(() => { const el = document.querySelector(".hce-highlight-active"); el?.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50);
+                        }}
+                      >
+                        <FaChevronUp />
+                      </button>
+                      <span className="hce-search-count">
+                        {hceSearchIdx + 1} / {total}
+                      </span>
+                      <button
+                        className="hce-search-nav"
+                        title="Siguiente (Enter)"
+                        onClick={() => {
+                          const next = (hceSearchIdx + 1) % total;
+                          setHceSearchIdx(next);
+                          setTimeout(() => { const el = document.querySelector(".hce-highlight-active"); el?.scrollIntoView({ behavior: "smooth", block: "center" }); }, 50);
+                        }}
+                      >
+                        <FaChevronDown />
+                      </button>
+                    </>
+                  ) : (
+                    <span className="hce-search-count hce-search-none">0 coincidencias</span>
+                  );
+                })()}
+                {hceSearch && (
+                  <button className="hce-search-clear" onClick={() => { setHceSearch(""); setHceSearchIdx(0); }}>
+                    <FaTimes />
+                  </button>
+                )}
+              </div>
+            )}
+            <div className="modal-body hce-modal-body">
+              {hceModalLoading ? (
+                <div className="hce-loading">
+                  <FaBrain className="spin" /> Cargando Historia Clínica...
+                </div>
+              ) : (
+                <pre className="hce-text-content">
+                  {hceSearch ? (
+                    (() => {
+                      const q = hceSearch;
+                      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+                      const regex = new RegExp(`(${escaped})`, "gi");
+                      const parts = hceModalText.split(regex);
+                      let matchIdx = -1;
+                      return parts.map((part, i) => {
+                        if (regex.test(part)) {
+                          matchIdx++;
+                          const isActive = matchIdx === hceSearchIdx;
+                          return (
+                            <mark
+                              key={i}
+                              className={`hce-highlight ${isActive ? "hce-highlight-active" : ""}`}
+                              ref={isActive ? (el) => { if (el && matchIdx === hceSearchIdx) { el.scrollIntoView({ behavior: "smooth", block: "center" }); } } : undefined}
+                            >
+                              {part}
+                            </mark>
+                          );
+                        }
+                        return <span key={i}>{part}</span>;
+                      });
+                    })()
+                  ) : (
+                    hceModalText
+                  )}
+                </pre>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn secondary"
+                onClick={() => {
+                  navigator.clipboard.writeText(hceModalText);
+                  setToastOk("HCE copiada al portapapeles");
+                  setTimeout(() => setToastOk(null), 2000);
+                }}
+              >
+                <FaCopy /> Copiar
+              </button>
+              <button
+                className="btn primary"
+                onClick={() => { setHceModalOpen(false); setHceSearch(""); }}
               >
                 Cerrar
               </button>

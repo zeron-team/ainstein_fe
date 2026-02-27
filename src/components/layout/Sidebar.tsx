@@ -15,10 +15,11 @@ import {
   FaHome,
   FaClipboardList,
   FaStethoscope,
+  FaLightbulb,
 } from "react-icons/fa";
 import { useAuth } from "@/auth/AuthContext";
 
-const SIDEBAR_BUILD_ID = "2026-01-27_tenants_added";
+const SIDEBAR_BUILD_ID = "2026-02-27_backoffice_split";
 
 type Props = {
   open: boolean;
@@ -40,18 +41,38 @@ export default function Sidebar({ open, onClose }: Props) {
         items: [
           { to: "/", icon: <FaHome />, label: "Inicio" },
           { to: "/dashboard", icon: <FaTachometerAlt />, label: "Dashboard" },
-        ],
-      },
-      {
-        title: "Pacientes",
-        items: [
           { to: "/patients", icon: <FaUsers />, label: "Pacientes" },
-          { to: "/patients/new", icon: <FaHospitalUser />, label: "Nuevo" },
+          { to: "/patients/new", icon: <FaHospitalUser />, label: "Nuevo Paciente" },
           { to: "/ainstein", icon: <FaCloudDownloadAlt />, label: "WS HCE" },
         ],
       },
       ...(user?.role === "admin"
         ? [
+          {
+            title: "Back-office",
+            items: [
+              {
+                to: "/admin/feedback",
+                icon: <FaChartBar />,
+                label: "Feedback",
+              },
+              {
+                to: "/admin/epc-control",
+                icon: <FaClipboardList />,
+                label: "Control EPC",
+              },
+              {
+                to: "/admin/costs",
+                icon: <FaDollarSign />,
+                label: "Costos IA",
+              },
+              {
+                to: "/admin/golden-rules",
+                icon: <FaLightbulb />,
+                label: "Golden Rules",
+              },
+            ],
+          },
           {
             title: "Administración",
             items: [
@@ -64,21 +85,6 @@ export default function Sidebar({ open, onClose }: Props) {
                 to: "/admin/tenants",
                 icon: <FaBuilding />,
                 label: "Tenants",
-              },
-              {
-                to: "/admin/feedback",
-                icon: <FaChartBar />,
-                label: "Feedback IA",
-              },
-              {
-                to: "/admin/epc-control",
-                icon: <FaClipboardList />,
-                label: "Control EPC",
-              },
-              {
-                to: "/admin/costs",
-                icon: <FaDollarSign />,
-                label: "Costos IA",
               },
               {
                 to: "/admin/health",

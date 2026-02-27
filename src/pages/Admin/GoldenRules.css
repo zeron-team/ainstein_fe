@@ -1,0 +1,745 @@
+/* src/pages/Admin/GoldenRules.css */
+
+/* ── Page ── */
+.gr-page {
+    padding: 24px;
+    color: #1e293b;
+}
+
+/* ── Header ── */
+.gr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.gr-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #1e293b;
+    margin: 0;
+}
+
+.gr-header-icon {
+    color: #eab308;
+    font-size: 20px;
+}
+
+.gr-subtitle {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #64748b;
+    max-width: 500px;
+}
+
+/* ── Info button & tooltip ── */
+.gr-info-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 2px 6px;
+    margin-left: 6px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    vertical-align: middle;
+}
+
+.gr-info-btn:hover {
+    color: #0284c7;
+    background: rgba(2, 132, 199, 0.08);
+}
+
+.gr-info-tooltip {
+    margin-top: 10px;
+    padding: 14px 18px;
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    animation: grFadeIn 0.2s ease;
+}
+
+.gr-info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #334155;
+    padding: 5px 0;
+}
+
+.gr-info-row .gr-priority-dot {
+    margin-top: 0;
+}
+
+.gr-info-note {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+    font-size: 11px;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+@keyframes grFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Stats ── */
+.gr-stats {
+    display: flex;
+    gap: 14px;
+}
+
+.gr-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 20px;
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    min-width: 72px;
+}
+
+.gr-stat-num {
+    font-size: 22px;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.gr-stat-green {
+    color: #16a34a;
+}
+
+.gr-stat-blue {
+    color: #3b82f6;
+}
+
+.gr-stat-orange {
+    color: #ea580c;
+}
+
+.gr-stat-label {
+    font-size: 10px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+}
+
+/* ══════════════════════════════════════════════
+   TWO-COLUMN LAYOUT
+   ══════════════════════════════════════════════ */
+
+.gr-columns {
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.gr-col-left,
+.gr-col-right {
+    min-width: 0;
+}
+
+/* ── Group titles ── */
+.gr-group-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #64748b;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.gr-group-learned {
+    color: #8b5cf6;
+}
+
+/* ── Filters ── */
+.gr-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.gr-filter {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+}
+
+.gr-filter-icon {
+    font-size: 10px;
+    color: #94a3b8;
+    flex-shrink: 0;
+}
+
+.gr-filter select {
+    width: 100%;
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: #f8fafc;
+    color: #334155;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    outline: none;
+}
+
+.gr-filter select:focus {
+    border-color: #0284c7;
+}
+
+/* ── All rules panel (left) ── */
+.gr-all-rules {
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: #ffffff;
+    padding: 10px;
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    position: sticky;
+    top: 80px;
+}
+
+.gr-all-rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    transition: background 0.15s ease;
+}
+
+.gr-all-rule:hover {
+    background: rgba(2, 132, 199, 0.05);
+}
+
+.gr-all-rule.gr-inactive {
+    opacity: 0.4;
+}
+
+.gr-all-rule-section {
+    flex-shrink: 0;
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(148, 163, 184, 0.12);
+    padding: 2px 6px;
+    border-radius: 999px;
+    color: #64748b;
+    min-width: 65px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.gr-all-rule-text {
+    color: #334155;
+    line-height: 1.4;
+}
+
+/* ── Section cards (right) ── */
+.gr-card {
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    border-radius: 16px;
+    background: #ffffff;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+.gr-card-learned {
+    border-color: rgba(139, 92, 246, 0.25);
+    background: linear-gradient(135deg, #ffffff, rgba(139, 92, 246, 0.03));
+}
+
+.gr-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    background: #f8fafc;
+}
+
+.gr-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.gr-card-icon {
+    color: #0284c7;
+    font-size: 14px;
+    display: flex;
+}
+
+.gr-card-learned .gr-card-icon {
+    color: #8b5cf6;
+}
+
+.gr-card-count {
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffffff;
+    background: #0284c7;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gr-card-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.gr-card-meta {
+    padding: 6px 16px;
+    font-size: 10px;
+    color: #94a3b8;
+    border-top: 1px solid rgba(148, 163, 184, 0.12);
+    background: #fafbfc;
+}
+
+/* ── Rule list (view mode) ── */
+.gr-rule-list {
+    padding: 8px 16px;
+}
+
+.gr-rule {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+    font-size: 13px;
+}
+
+.gr-rule:last-child {
+    border-bottom: 0;
+}
+
+.gr-rule.gr-inactive {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+.gr-rule-text {
+    color: #334155;
+    line-height: 1.5;
+}
+
+.gr-disabled-badge {
+    font-size: 10px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.gr-pending-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(234, 88, 12, 0.1);
+    color: #ea580c;
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+}
+
+.gr-dict-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+}
+
+.gr-rule-dict {
+    background: rgba(139, 92, 246, 0.03);
+    border-left: 3px solid rgba(139, 92, 246, 0.25);
+    padding-left: 12px;
+    margin-left: -4px;
+}
+
+/* ── Priority dots ── */
+.gr-priority-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+}
+
+.priority-critica {
+    background: #ef4444;
+    box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
+}
+
+.priority-alta {
+    background: #f59e0b;
+    box-shadow: 0 0 6px rgba(245, 158, 11, 0.35);
+}
+
+.priority-normal {
+    background: #22c55e;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
+}
+
+/* ══════════════════════════════════════════════
+   EDIT MODE
+   ══════════════════════════════════════════════ */
+.gr-edit-list {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.gr-edit-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.gr-edit-textarea {
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 10px;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.gr-edit-textarea:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+.gr-edit-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gr-edit-priority {
+    padding: 6px 10px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 12px;
+    outline: none;
+    min-width: 90px;
+    cursor: pointer;
+}
+
+.gr-edit-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #64748b;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.gr-edit-toggle input {
+    accent-color: #0284c7;
+    width: 15px;
+    height: 15px;
+}
+
+/* ── Quick add ── */
+.gr-quick-add {
+    padding: 14px 16px;
+    border-top: 1px dashed rgba(148, 163, 184, 0.25);
+    background: rgba(2, 132, 199, 0.02);
+}
+
+.gr-quick-input {
+    width: 100%;
+    min-height: 50px;
+    padding: 10px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 10px;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    font-family: inherit;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.gr-quick-input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1);
+}
+
+.gr-quick-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ── Buttons ── */
+.gr-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.gr-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.gr-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.gr-btn-edit {
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.3);
+    background: rgba(245, 158, 11, 0.06);
+}
+
+.gr-btn-edit:hover:not(:disabled) {
+    background: rgba(245, 158, 11, 0.12);
+}
+
+.gr-btn-save {
+    color: #ffffff;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    border: none;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+.gr-btn-save:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
+}
+
+.gr-btn-cancel {
+    color: #64748b;
+    background: transparent;
+}
+
+.gr-btn-cancel:hover {
+    background: rgba(148, 163, 184, 0.1);
+}
+
+.gr-btn-add {
+    color: #0284c7;
+    border-color: rgba(2, 132, 199, 0.3);
+    background: rgba(2, 132, 199, 0.06);
+}
+
+.gr-btn-add:hover:not(:disabled) {
+    background: rgba(2, 132, 199, 0.12);
+}
+
+.gr-btn-add-inline {
+    color: #0284c7;
+    border: 1px dashed rgba(2, 132, 199, 0.35);
+    background: rgba(2, 132, 199, 0.03);
+    width: 100%;
+    justify-content: center;
+    padding: 10px;
+}
+
+.gr-btn-add-inline:hover {
+    background: rgba(2, 132, 199, 0.08);
+}
+
+.gr-btn-delete {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.2);
+    background: transparent;
+    padding: 6px 8px;
+    margin-left: auto;
+}
+
+.gr-btn-delete:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.gr-btn-process {
+    color: #0d9488;
+    border-color: rgba(13, 148, 136, 0.3);
+    background: rgba(13, 148, 136, 0.06);
+}
+
+.gr-btn-process:hover:not(:disabled) {
+    background: rgba(13, 148, 136, 0.14);
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+}
+
+.gr-processed-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(22, 163, 74, 0.1);
+    color: #16a34a;
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+}
+
+/* ── Learned section (full width bottom) ── */
+.gr-section-learned {
+    margin-top: 20px;
+}
+
+/* ── States ── */
+.gr-loading {
+    text-align: center;
+    color: #64748b;
+    padding: 60px 20px;
+    font-size: 14px;
+    background: rgba(148, 163, 184, 0.05);
+    border-radius: 16px;
+}
+
+.gr-error {
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    color: #dc2626;
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    text-align: center;
+}
+
+.gr-empty {
+    color: #94a3b8;
+    font-size: 13px;
+    padding: 16px 0;
+    display: flex;
+    align-items: center;
+}
+
+/* ── Toast ── */
+.gr-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    color: #ffffff;
+    padding: 12px 24px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 28px rgba(22, 163, 74, 0.4);
+    z-index: 9999;
+    animation: grToastIn 0.3s ease;
+}
+
+@keyframes grToastIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── Scrollbar ── */
+.gr-all-rules::-webkit-scrollbar {
+    width: 5px;
+}
+
+.gr-all-rules::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 999px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+    .gr-columns {
+        grid-template-columns: 1fr;
+    }
+
+    .gr-all-rules {
+        max-height: 300px;
+        position: static;
+    }
+
+    .gr-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}

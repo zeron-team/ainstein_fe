@@ -386,6 +386,14 @@
 }
 
 /* columnas ajustadas para ser proporcionales */
+.col-num {
+  width: 38px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .col-apellido {
   width: 130px;
 }
