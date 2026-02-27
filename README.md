@@ -258,6 +258,8 @@ ainstein_fe/
     │   │   ├── 📄 TenantManager.css
     │   │   ├── 📄 EPCControlDashboard.tsx # 🆕 Control de EPCs
     │   │   ├── 📄 EPCControlDashboard.css
+    │   │   ├── 📄 GoldenRules.tsx        # 🆕 Reglas de Oro (Golden Rules)
+    │   │   ├── 📄 GoldenRules.css
     │   │   ├── 📄 SnomedDashboard.tsx    # 🆕 SNOMED CT browser
     │   │   └── 📄 SnomedDashboard.css
     │   │
@@ -327,6 +329,7 @@ VITE_API_URL=https://api.ainstein-epc.com
 | `/admin/health` | `Admin/HealthCheck.tsx` | Estado servicios FERRO |
 | `/admin/tenants` | `Admin/TenantManager.tsx` | Gestión multi-tenant |
 | `/admin/epc-control` | `Admin/EPCControlDashboard.tsx` | 🆕 Control y monitoreo EPCs |
+| `/admin/golden-rules` | `Admin/GoldenRules.tsx` | 🆕 Reglas de Oro para generación EPC |
 | `/admin/snomed` | `Admin/SnomedDashboard.tsx` | 🆕 Browser SNOMED CT |
 | `/settings/branding` | `Settings/Branding.tsx` | Personalización |
 
@@ -804,4 +807,4 @@ Propiedad de **Zeron Team** - Todos los derechos reservados.
 
 ---
 
-*Última actualización: 2026-02-25 | AInstein Frontend v3.0.0*
+*Última actualización: 2026-02-27 | AInstein Frontend v3.0.0*
