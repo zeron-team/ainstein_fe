@@ -1,9 +1,9 @@
 /* src/pages/Admin/EPCControlDashboard.css */
 
 .epc-ctrl-wrap {
-    padding: 24px;
-    max-width: 1500px;
-    margin: 0 auto;
+    padding: 20px;
+    width: 100%;
+    margin: 0;
 }
 
 .epc-ctrl-header {
@@ -614,5 +614,186 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+/* ========== Group / Ungroup Toggle Button ========== */
+.epc-ctrl-group-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(99, 102, 241, 0.4);
+    background: rgba(99, 102, 241, 0.08);
+    color: #6366f1;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.epc-ctrl-group-btn:hover {
+    background: rgba(99, 102, 241, 0.18);
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+}
+
+.epc-ctrl-group-btn.ungrouped {
+    border-color: rgba(245, 158, 11, 0.5);
+    background: rgba(245, 158, 11, 0.1);
+    color: #d97706;
+}
+
+.epc-ctrl-group-btn.ungrouped:hover {
+    background: rgba(245, 158, 11, 0.2);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.18);
+}
+
+/* ========== Date Filters Bar ========== */
+.epc-ctrl-filters-bar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(241, 245, 249, 0.5);
+    flex-wrap: wrap;
+}
+
+.epc-ctrl-filters-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.epc-ctrl-filters-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.epc-ctrl-filter-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.epc-ctrl-filter-item label {
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.epc-ctrl-filter-date,
+.epc-ctrl-filter-select {
+    padding: 6px 10px;
+    border-radius: 7px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    min-width: 0;
+}
+
+.epc-ctrl-filter-date {
+    width: 140px;
+}
+
+.epc-ctrl-filter-select {
+    width: 110px;
+    cursor: pointer;
+    appearance: auto;
+}
+
+.epc-ctrl-filter-date:focus,
+.epc-ctrl-filter-select:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.12);
+}
+
+.epc-ctrl-filter-clear {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border-radius: 7px;
+    border: 1px solid rgba(220, 38, 38, 0.35);
+    background: rgba(220, 38, 38, 0.06);
+    color: #dc2626;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.epc-ctrl-filter-clear:hover {
+    background: rgba(220, 38, 38, 0.14);
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.12);
+}
+
+.epc-ctrl-filter-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(2, 132, 199, 0.1);
+    color: #0284c7;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    margin-left: auto;
+}
+
+/* Responsive filters */
+@media (max-width: 900px) {
+    .epc-ctrl-filters-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .epc-ctrl-filters-group {
+        width: 100%;
+    }
+
+    .epc-ctrl-filter-date {
+        width: 120px;
+    }
+
+    .epc-ctrl-filter-select {
+        width: 100px;
+    }
+
+    .epc-ctrl-filter-badge {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    .epc-ctrl-filters-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .epc-ctrl-filter-item {
+        width: 100%;
+    }
+
+    .epc-ctrl-filter-date,
+    .epc-ctrl-filter-select {
+        flex: 1;
+        width: 100%;
     }
 }

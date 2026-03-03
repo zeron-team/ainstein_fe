@@ -873,15 +873,9 @@ export default function ViewEditEPC() {
     }
     setEvalValidationError(null);
 
-    // Enviar cada sección evaluada al API
+    // Marcar todos los feedbacks draft como completados
     try {
-      const visible = getVisibleSections();
-      for (const section of visible) {
-        const rating = sectionRatings[section];
-        if (rating) {
-          await submitFeedbackToApi(section, rating, "");
-        }
-      }
+      await api.post(`/epc/${epc!.id}/feedback/complete`);
       setToastOk("Evaluación guardada correctamente.");
     } catch (err) {
       console.error("Error guardando evaluación:", err);

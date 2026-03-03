@@ -21,6 +21,11 @@ import {
     FaDownload,
     FaFileExcel,
     FaFilePdf,
+    FaLayerGroup,
+    FaList,
+    FaCalendarAlt,
+    FaFilter,
+    FaTimes,
 } from "react-icons/fa";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -115,6 +120,26 @@ type EPCRow = {
     last_evaluation: string | null;
 };
 
+type EPCEvaluatorRow = {
+    epc_id: string;
+    patient_name: string;
+    evaluator_name: string;
+    evaluator_id: string | null;
+    total_evaluations: number;
+    ok_count: number;
+    partial_count: number;
+    bad_count: number;
+    ok_pct: number;
+    epc_created: string | null;
+    first_evaluation: string | null;
+    last_evaluation: string | null;
+};
+
+const MONTH_NAMES = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+
 type SortKey = "user_name" | "epcs_evaluated" | "total_evaluations" | "ok_count" | "partial_count" | "bad_count" | "ok_pct" | "first_evaluation" | "last_evaluation";
 type SortDir = "asc" | "desc";
 
@@ -127,6 +152,7 @@ export default function EPCControlDashboard() {
     const [kpis, setKpis] = useState<KPIs | null>(null);
     const [byUser, setByUser] = useState<UserRow[]>([]);
     const [byEpc, setByEpc] = useState<EPCRow[]>([]);
+    const [byEpcEvaluator, setByEpcEvaluator] = useState<EPCEvaluatorRow[]>([]);
     const [recentEvals, setRecentEvals] = useState<RecentEvaluation[]>([]);
 
     // Búsqueda y ordenamiento tabla usuarios
@@ -151,6 +177,15 @@ export default function EPCControlDashboard() {
     const [showUserExport, setShowUserExport] = useState(false);
     const [showEpcExport, setShowEpcExport] = useState(false);
 
+    // EPC table: group/ungroup evaluators
+    const [epcGrouped, setEpcGrouped] = useState(true);
+
+    // EPC table: date filters
+    const [epcDateFrom, setEpcDateFrom] = useState("");
+    const [epcDateTo, setEpcDateTo] = useState("");
+    const [epcYear, setEpcYear] = useState("");
+    const [epcMonth, setEpcMonth] = useState("");
+
     async function loadData() {
         setLoading(true);
         setError("");
@@ -159,6 +194,7 @@ export default function EPCControlDashboard() {
             setKpis(data.kpis);
             setByUser(data.by_user || []);
             setByEpc(data.by_epc || []);
+            setByEpcEvaluator(data.by_epc_evaluator || []);
             setRecentEvals(data.recent_evaluations || []);
         } catch (e: any) {
             setError(e?.response?.data?.detail || "Error cargando datos del dashboard");
@@ -224,9 +260,46 @@ export default function EPCControlDashboard() {
         return rows;
     }, [byUser, searchUser, sortKey, sortDir]);
 
+    // Available years from data (for year dropdown)
+    const availableYears = useMemo(() => {
+        const years = new Set<number>();
+        byEpc.forEach(r => {
+            if (r.last_evaluation) years.add(new Date(r.last_evaluation).getFullYear());
+            if (r.first_evaluation) years.add(new Date(r.first_evaluation).getFullYear());
+            if (r.epc_created) years.add(new Date(r.epc_created).getFullYear());
+        });
+        return Array.from(years).sort((a, b) => b - a);
+    }, [byEpc]);
+
+    // Date filter helper
+    function passesDateFilter(row: EPCRow): boolean {
+        const evalDate = row.last_evaluation || row.first_evaluation;
+        if (!evalDate) return !epcDateFrom && !epcDateTo && !epcYear && !epcMonth;
+        const d = new Date(evalDate);
+        if (epcDateFrom && d < new Date(epcDateFrom)) return false;
+        if (epcDateTo) {
+            const to = new Date(epcDateTo);
+            to.setHours(23, 59, 59, 999);
+            if (d > to) return false;
+        }
+        if (epcYear && d.getFullYear() !== parseInt(epcYear)) return false;
+        if (epcMonth && d.getMonth() !== parseInt(epcMonth)) return false;
+        return true;
+    }
+
+    const hasActiveEpcFilters = !!(epcDateFrom || epcDateTo || epcYear || epcMonth);
+
+    function clearEpcDateFilters() {
+        setEpcDateFrom("");
+        setEpcDateTo("");
+        setEpcYear("");
+        setEpcMonth("");
+    }
+
     // Filtered + sorted EPC rows
     const filteredEpcs = useMemo(() => {
         let rows = [...byEpc];
+        // Text search
         if (searchEpc.trim()) {
             const q = searchEpc.toLowerCase();
             rows = rows.filter(r =>
@@ -234,6 +307,9 @@ export default function EPCControlDashboard() {
                 r.evaluators.some(e => e.toLowerCase().includes(q))
             );
         }
+        // Date filters
+        rows = rows.filter(passesDateFilter);
+        // Sort
         rows.sort((a, b) => {
             let aVal: any = (a as any)[epcSortKey];
             let bVal: any = (b as any)[epcSortKey];
@@ -245,7 +321,50 @@ export default function EPCControlDashboard() {
             return 0;
         });
         return rows;
-    }, [byEpc, searchEpc, epcSortKey, epcSortDir]);
+    }, [byEpc, searchEpc, epcSortKey, epcSortDir, epcDateFrom, epcDateTo, epcYear, epcMonth]);
+
+    // Pass date filter for evaluator rows (reuse same logic)
+    function passesEvaluatorDateFilter(row: EPCEvaluatorRow): boolean {
+        const evalDate = row.last_evaluation || row.first_evaluation;
+        if (!evalDate) return !epcDateFrom && !epcDateTo && !epcYear && !epcMonth;
+        const d = new Date(evalDate);
+        if (epcDateFrom && d < new Date(epcDateFrom)) return false;
+        if (epcDateTo) {
+            const to = new Date(epcDateTo);
+            to.setHours(23, 59, 59, 999);
+            if (d > to) return false;
+        }
+        if (epcYear && d.getFullYear() !== parseInt(epcYear)) return false;
+        if (epcMonth && d.getMonth() !== parseInt(epcMonth)) return false;
+        return true;
+    }
+
+    // Filtered + sorted ungrouped EPC rows (real per-evaluator data from backend)
+    const filteredEpcEvaluators = useMemo(() => {
+        let rows = [...byEpcEvaluator];
+        // Text search
+        if (searchEpc.trim()) {
+            const q = searchEpc.toLowerCase();
+            rows = rows.filter(r =>
+                r.patient_name.toLowerCase().includes(q) ||
+                r.evaluator_name.toLowerCase().includes(q)
+            );
+        }
+        // Date filters
+        rows = rows.filter(passesEvaluatorDateFilter);
+        // Sort
+        rows.sort((a, b) => {
+            let aVal: any = (a as any)[epcSortKey];
+            let bVal: any = (b as any)[epcSortKey];
+            if (typeof aVal === "string") { aVal = aVal.toLowerCase(); bVal = (bVal || "").toLowerCase(); }
+            if (aVal == null) aVal = epcSortDir === "asc" ? "\uffff" : "";
+            if (bVal == null) bVal = epcSortDir === "asc" ? "\uffff" : "";
+            if (aVal < bVal) return epcSortDir === "asc" ? -1 : 1;
+            if (aVal > bVal) return epcSortDir === "asc" ? 1 : -1;
+            return 0;
+        });
+        return rows;
+    }, [byEpcEvaluator, searchEpc, epcSortKey, epcSortDir, epcDateFrom, epcDateTo, epcYear, epcMonth]);
 
     // Filtered + sorted recent evaluations
     const filteredRecent = useMemo(() => {
@@ -321,38 +440,84 @@ export default function EPCControlDashboard() {
         doc.save(`Evaluaciones_por_Usuario_${new Date().toISOString().slice(0, 10)}.pdf`);
     }
 
+    function getActiveFiltersLabel(): string {
+        const parts: string[] = [];
+        if (epcDateFrom) parts.push(`Desde: ${epcDateFrom}`);
+        if (epcDateTo) parts.push(`Hasta: ${epcDateTo}`);
+        if (epcYear) parts.push(`Año: ${epcYear}`);
+        if (epcMonth) parts.push(`Mes: ${MONTH_NAMES[parseInt(epcMonth)]}`);
+        if (searchEpc.trim()) parts.push(`Búsqueda: "${searchEpc}"`);
+        return parts.length > 0 ? `Filtros: ${parts.join(" | ")}` : "";
+    }
+
     function exportEpcsXlsx() {
         setShowEpcExport(false);
-        const rows = filteredEpcs.map(ep => ({
-            "Paciente": ep.patient_name,
-            "Evaluadores": ep.evaluators.join(", "),
-            "Evaluaciones": ep.total_evaluations,
-            "OK": ep.ok_count,
-            "Parcial": ep.partial_count,
-            "Mal": ep.bad_count,
-            "% OK": ep.ok_pct,
-            "Creación EPC": ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "",
-            "Última eval.": ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "",
-        }));
+        const mode = epcGrouped ? "Agrupado" : "Desagrupado";
+        const sheetName = epcGrouped ? "Pacientes Evaluados" : "Evaluadores por Paciente";
+
+        let rows: Record<string, any>[];
+        if (epcGrouped) {
+            rows = filteredEpcs.map(ep => ({
+                "Paciente": ep.patient_name,
+                "Evaluadores": ep.evaluators.join(", "),
+                "Evaluaciones": ep.total_evaluations,
+                "OK": ep.ok_count,
+                "Parcial": ep.partial_count,
+                "Mal": ep.bad_count,
+                "% OK": ep.ok_pct,
+                "Creación EPC": ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "",
+                "Última eval.": ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "",
+            }));
+        } else {
+            rows = filteredEpcEvaluators.map(ep => ({
+                "Paciente": ep.patient_name,
+                "Evaluador": ep.evaluator_name,
+                "Evaluaciones": ep.total_evaluations,
+                "OK": ep.ok_count,
+                "Parcial": ep.partial_count,
+                "Mal": ep.bad_count,
+                "% OK": ep.ok_pct,
+                "Creación EPC": ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "",
+                "Última eval.": ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "",
+            }));
+        }
+
         const ws = XLSX.utils.json_to_sheet(rows);
         ws["!cols"] = [{ wch: 25 }, { wch: 25 }, { wch: 14 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 14 }, { wch: 14 }];
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Pacientes Evaluados");
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
         const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-        saveAs(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), `Pacientes_Evaluados_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        const filename = epcGrouped
+            ? `Pacientes_Evaluados_${new Date().toISOString().slice(0, 10)}.xlsx`
+            : `Evaluadores_por_Paciente_${new Date().toISOString().slice(0, 10)}.xlsx`;
+        saveAs(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), filename);
     }
 
     function exportEpcsPdf() {
         setShowEpcExport(false);
         const doc = new jsPDF({ orientation: "landscape" });
+        const title = epcGrouped ? "Pacientes Evaluados (Agrupado)" : "Evaluadores por Paciente (Desagrupado)";
+        const filtersLabel = getActiveFiltersLabel();
+
         doc.setFontSize(16);
-        doc.text("Pacientes Evaluados", 14, 18);
+        doc.text(title, 14, 18);
         doc.setFontSize(9);
         doc.text(`Generado: ${new Date().toLocaleString("es-AR")}`, 14, 24);
-        autoTable(doc, {
-            startY: 30,
-            head: [["Paciente", "Evaluadores", "Evaluaciones", "OK", "Parcial", "Mal", "% OK", "Creación", "Última eval."]],
-            body: filteredEpcs.map(ep => [
+        let startY = 30;
+        if (filtersLabel) {
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            doc.text(filtersLabel, 14, 29);
+            doc.setTextColor(0);
+            startY = 34;
+        }
+
+        const evalColHeader = epcGrouped ? "Evaluadores" : "Evaluador";
+        const head = [["Paciente", evalColHeader, "Evaluaciones", "OK", "Parcial", "Mal", "% OK", "Creación", "Última eval."]];
+
+        let body: any[][];
+        if (epcGrouped) {
+            body = filteredEpcs.map(ep => [
                 ep.patient_name,
                 ep.evaluators.join(", "),
                 ep.total_evaluations,
@@ -362,12 +527,34 @@ export default function EPCControlDashboard() {
                 `${ep.ok_pct}%`,
                 ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "—",
                 ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "—",
-            ]),
+            ]);
+        } else {
+            body = filteredEpcEvaluators.map(ep => [
+                ep.patient_name,
+                ep.evaluator_name,
+                ep.total_evaluations,
+                ep.ok_count,
+                ep.partial_count,
+                ep.bad_count,
+                `${ep.ok_pct}%`,
+                ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "—",
+                ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "—",
+            ]);
+        }
+
+        autoTable(doc, {
+            startY,
+            head,
+            body,
             styles: { fontSize: 9, cellPadding: 3 },
             headStyles: { fillColor: [16, 163, 74], textColor: 255, fontStyle: "bold" },
             alternateRowStyles: { fillColor: [241, 245, 249] },
         });
-        doc.save(`Pacientes_Evaluados_${new Date().toISOString().slice(0, 10)}.pdf`);
+
+        const filename = epcGrouped
+            ? `Pacientes_Evaluados_${new Date().toISOString().slice(0, 10)}.pdf`
+            : `Evaluadores_por_Paciente_${new Date().toISOString().slice(0, 10)}.pdf`;
+        doc.save(filename);
     }
 
     if (loading) return <div className="epc-ctrl-wrap"><div className="epc-ctrl-loading">Cargando dashboard de control...</div></div>;
@@ -535,6 +722,14 @@ export default function EPCControlDashboard() {
                         <div className="epc-ctrl-panel-header">
                             <h2><FaFileMedical /> Pacientes Evaluados</h2>
                             <div className="epc-ctrl-header-actions">
+                                {/* Group / Ungroup toggle */}
+                                <button
+                                    className={`epc-ctrl-group-btn ${epcGrouped ? "grouped" : "ungrouped"}`}
+                                    onClick={() => setEpcGrouped(g => !g)}
+                                    title={epcGrouped ? "Desagrupar: una fila por evaluador" : "Agrupar: todos los evaluadores en una fila"}
+                                >
+                                    {epcGrouped ? <><FaLayerGroup /> Agrupado</> : <><FaList /> Desagrupado</>}
+                                </button>
                                 <div className="epc-ctrl-export-wrap">
                                     <button className="epc-ctrl-export-btn" onClick={() => { setShowEpcExport(!showEpcExport); setShowUserExport(false); }}>
                                         <FaDownload /> Descargar
@@ -558,6 +753,71 @@ export default function EPCControlDashboard() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* ========== Date Filters Bar ========== */}
+                        <div className="epc-ctrl-filters-bar">
+                            <div className="epc-ctrl-filters-label">
+                                <FaFilter /> Filtros de fecha
+                            </div>
+                            <div className="epc-ctrl-filters-group">
+                                <div className="epc-ctrl-filter-item">
+                                    <label>Desde</label>
+                                    <input
+                                        type="date"
+                                        value={epcDateFrom}
+                                        onChange={e => setEpcDateFrom(e.target.value)}
+                                        className="epc-ctrl-filter-date"
+                                    />
+                                </div>
+                                <div className="epc-ctrl-filter-item">
+                                    <label>Hasta</label>
+                                    <input
+                                        type="date"
+                                        value={epcDateTo}
+                                        onChange={e => setEpcDateTo(e.target.value)}
+                                        className="epc-ctrl-filter-date"
+                                    />
+                                </div>
+                                <div className="epc-ctrl-filter-item">
+                                    <label>Año</label>
+                                    <select
+                                        value={epcYear}
+                                        onChange={e => setEpcYear(e.target.value)}
+                                        className="epc-ctrl-filter-select"
+                                    >
+                                        <option value="">Todos</option>
+                                        {availableYears.map(y => (
+                                            <option key={y} value={y}>{y}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="epc-ctrl-filter-item">
+                                    <label>Mes</label>
+                                    <select
+                                        value={epcMonth}
+                                        onChange={e => setEpcMonth(e.target.value)}
+                                        className="epc-ctrl-filter-select"
+                                    >
+                                        <option value="">Todos</option>
+                                        {MONTH_NAMES.map((name, idx) => (
+                                            <option key={idx} value={idx}>{name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {hasActiveEpcFilters && (
+                                    <button className="epc-ctrl-filter-clear" onClick={clearEpcDateFilters}>
+                                        <FaTimes /> Limpiar
+                                    </button>
+                                )}
+                            </div>
+                            {hasActiveEpcFilters && (
+                                <div className="epc-ctrl-filter-badge">
+                                    {epcGrouped ? filteredEpcs.length : filteredEpcEvaluators.length} resultados
+                                </div>
+                            )}
+                        </div>
+
+                        {/* ========== Table ========== */}
                         <div className="epc-ctrl-table-wrap">
                             <table className="epc-ctrl-table">
                                 <thead>
@@ -566,7 +826,7 @@ export default function EPCControlDashboard() {
                                             Paciente <SortIcon col="patient_name" current={epcSortKey} dir={epcSortDir} />
                                         </th>
                                         <th onClick={() => handleEpcSort("evaluator_count")} className="sortable num">
-                                            Evaluadores <SortIcon col="evaluator_count" current={epcSortKey} dir={epcSortDir} />
+                                            {epcGrouped ? "Evaluadores" : "Evaluador"} <SortIcon col="evaluator_count" current={epcSortKey} dir={epcSortDir} />
                                         </th>
                                         <th onClick={() => handleEpcSort("total_evaluations")} className="sortable num">
                                             Evaluaciones <SortIcon col="total_evaluations" current={epcSortKey} dir={epcSortDir} />
@@ -592,7 +852,8 @@ export default function EPCControlDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredEpcs.map(ep => {
+                                    {/* ===== GROUPED MODE ===== */}
+                                    {epcGrouped && filteredEpcs.map(ep => {
                                         const perfClass = ep.ok_pct >= 60 ? "perf-good" : ep.ok_pct >= 30 ? "perf-medium" : "perf-low";
                                         return (
                                             <tr key={ep.epc_id}>
@@ -622,7 +883,34 @@ export default function EPCControlDashboard() {
                                             </tr>
                                         );
                                     })}
-                                    {filteredEpcs.length === 0 && (
+                                    {/* ===== UNGROUPED MODE ===== */}
+                                    {!epcGrouped && filteredEpcEvaluators.map(ep => {
+                                        const perfClass = ep.ok_pct >= 60 ? "perf-good" : ep.ok_pct >= 30 ? "perf-medium" : "perf-low";
+                                        return (
+                                            <tr key={`${ep.epc_id}__${ep.evaluator_name}`}>
+                                                <td className="td-user">
+                                                    <div className="patient-icon">🏥</div>
+                                                    <span className="user-name">{ep.patient_name}</span>
+                                                </td>
+                                                <td>
+                                                    <span className="evaluator-pill">
+                                                        <span className="user-avatar mini">{(ep.evaluator_name || "?")[0].toUpperCase()}</span>
+                                                        {ep.evaluator_name}
+                                                    </span>
+                                                </td>
+                                                <td className="num"><strong>{ep.total_evaluations}</strong></td>
+                                                <td className="num ok-val">{ep.ok_count}</td>
+                                                <td className="num partial-val">{ep.partial_count}</td>
+                                                <td className="num bad-val">{ep.bad_count}</td>
+                                                <td className="num">
+                                                    <span className={`perf-badge ${perfClass}`}>{ep.ok_pct}%</span>
+                                                </td>
+                                                <td className="td-date" title={formatDate(ep.epc_created)}>{timeAgo(ep.epc_created)}</td>
+                                                <td className="td-date" title={formatDate(ep.last_evaluation)}>{timeAgo(ep.last_evaluation)}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                    {((epcGrouped && filteredEpcs.length === 0) || (!epcGrouped && filteredEpcEvaluators.length === 0)) && (
                                         <tr><td colSpan={9} className="epc-ctrl-empty">No se encontraron pacientes evaluados</td></tr>
                                     )}
                                 </tbody>
