@@ -173,13 +173,16 @@ export default function GoldenRules() {
         }
     };
 
-    // Separate applied vs learned
-    const appliedSections = sections.filter((s) => s.key !== "learned");
-    const learnedSection = sections.find((s) => s.key === "learned");
+    // Ensure sections is always an array for safe rendering
+    const safeSections = Array.isArray(sections) ? sections : [];
 
-    const totalRules = sections.reduce((sum, s) => sum + s.rules.length, 0);
-    const activeRules = sections.reduce((sum, s) => sum + s.rules.filter((r) => r.active).length, 0);
-    const processedRules = sections.reduce((sum, s) => sum + s.rules.filter((r) => r.processed).length, 0);
+    // Separate applied vs learned
+    const appliedSections = safeSections.filter((s) => s.key !== "learned");
+    const learnedSection = safeSections.find((s) => s.key === "learned");
+
+    const totalRules = safeSections.reduce((sum, s) => sum + (s.rules?.length || 0), 0);
+    const activeRules = safeSections.reduce((sum, s) => sum + (s.rules?.filter((r) => r.active)?.length || 0), 0);
+    const processedRules = safeSections.reduce((sum, s) => sum + (s.rules?.filter((r) => r.processed)?.length || 0), 0);
 
 
     // ─── Render helpers ───
@@ -380,7 +383,7 @@ export default function GoldenRules() {
                                     <FaFilter className="gr-filter-icon" />
                                     <select value={filterSection} onChange={(e) => setFilterSection(e.target.value)}>
                                         <option value="all">Todas las secciones</option>
-                                        {sections.map((s) => (
+                                        {safeSections.map((s) => (
                                             <option key={s.key} value={s.key}>{s.title}</option>
                                         ))}
                                     </select>
@@ -397,7 +400,7 @@ export default function GoldenRules() {
                             <div className="gr-all-rules">
                                 {(() => {
                                     const PRIO_ORDER: Record<string, number> = { critica: 0, alta: 1, normal: 2 };
-                                    const filtered = sections
+                                    const filtered = safeSections
                                         .filter((s) => filterSection === "all" || s.key === filterSection)
                                         .flatMap((s) =>
                                             s.rules

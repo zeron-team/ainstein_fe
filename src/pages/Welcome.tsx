@@ -24,7 +24,7 @@ const Welcome: React.FC = () => {
                     </div>
 
                     <h1 className="hero-title">
-                        Bienvenido a <span className="gradient-text">EPC Builder 2.0</span>
+                        Bienvenido a <span className="gradient-text">EPC Builder 3.0</span>
                     </h1>
 
                     <p className="hero-description">
@@ -45,7 +45,7 @@ const Welcome: React.FC = () => {
                 </div>
 
                 <div className="hero-visual">
-                    <div className="version-badge">v2.0.0</div>
+                    <div className="version-badge">v3.0.0</div>
                 </div>
             </section>
 

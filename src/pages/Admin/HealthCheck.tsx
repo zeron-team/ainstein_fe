@@ -401,8 +401,9 @@ export default function HealthCheck() {
         if (!health) return <div className="hc-message">Sin datos disponibles</div>;
 
         // Agrupar servicios por categoría
+        const services = health.services || {};
         const categories: Record<string, Array<[string, ServiceStatus]>> = {};
-        Object.entries(health.services).forEach(([key, svc]) => {
+        Object.entries(services).forEach(([key, svc]) => {
             const config = SERVICE_CONFIG[key];
             const cat = config?.category || "Otros";
             if (!categories[cat]) categories[cat] = [];
@@ -411,7 +412,7 @@ export default function HealthCheck() {
 
         // Contar estados
         const counts: Record<string, number> = { ok: 0, error: 0, warning: 0, disabled: 0 };
-        Object.values(health.services).forEach(s => {
+        Object.values(services).forEach(s => {
             counts[s.status] = (counts[s.status] || 0) + 1;
         });
 
