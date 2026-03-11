@@ -43,6 +43,7 @@ interface RuleItem {
     created_at?: string;
     updated_at?: string;
     audit_log?: AuditEntry[];
+    contributors?: string[];
 }
 
 interface RuleSection {
@@ -320,8 +321,24 @@ export default function GoldenRules() {
                                     {r.source === "dictionary" && (
                                         <div className="gr-audit-info">
                                             <span className="gr-audit-who">
-                                                Creado por <strong>{r.created_by || "sistema"}</strong>
-                                                {r.created_at && ` el ${new Date(r.created_at).toLocaleDateString("es-AR")}`}
+                                                {r.contributors && r.contributors.length > 1 ? (
+                                                    <details className="gr-contributors-details">
+                                                        <summary className="gr-contributors-toggle">
+                                                            Por <strong>{r.contributors.length} usuarios</strong>
+                                                            {r.created_at && ` · desde ${new Date(r.created_at).toLocaleDateString("es-AR")}`}
+                                                        </summary>
+                                                        <ul className="gr-contributors-list">
+                                                            {r.contributors.map((name, i) => (
+                                                                <li key={i}>{name}</li>
+                                                            ))}
+                                                        </ul>
+                                                    </details>
+                                                ) : (
+                                                    <>
+                                                        Por <strong>{r.contributors?.[0] || r.created_by || "sistema"}</strong>
+                                                        {r.created_at && ` el ${new Date(r.created_at).toLocaleDateString("es-AR")}`}
+                                                    </>
+                                                )}
                                             </span>
                                             {r.audit_log && r.audit_log.length > 0 && (
                                                 <details className="gr-audit-details">

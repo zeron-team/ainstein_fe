@@ -448,7 +448,7 @@
     content: "▸ ";
 }
 
-details[open] > .gr-audit-toggle::before {
+details[open]>.gr-audit-toggle::before {
     content: "▾ ";
 }
 
@@ -477,6 +477,40 @@ details[open] > .gr-audit-toggle::before {
 .gr-audit-patient {
     color: #0284c7;
     font-weight: 500;
+}
+
+/* ── Contributors grouped ── */
+.gr-contributors-details {
+    display: inline;
+}
+
+.gr-contributors-toggle {
+    cursor: pointer;
+    list-style: none;
+    display: inline;
+}
+
+.gr-contributors-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.gr-contributors-list {
+    list-style: none;
+    padding: 4px 0 0 12px;
+    margin: 4px 0 0 0;
+    border-left: 2px solid rgba(139, 92, 246, 0.2);
+    font-size: 11px;
+}
+
+.gr-contributors-list li {
+    padding: 2px 0;
+    color: #334155;
+    font-weight: 500;
+}
+
+.gr-contributors-list li::before {
+    content: "• ";
+    color: #8b5cf6;
 }
 
 /* ── Priority dots ── */
