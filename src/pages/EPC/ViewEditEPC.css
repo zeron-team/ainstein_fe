@@ -2035,7 +2035,7 @@ textarea.gen-textarea:focus {
   background: #f8fafc;
   border: 1px solid var(--border);
   border-radius: 10px;
-  max-height: 60vh;
+  max-height: none;
   overflow-y: auto;
 }
 
