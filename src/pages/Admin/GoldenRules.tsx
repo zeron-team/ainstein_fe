@@ -20,6 +20,15 @@ import {
 import api from "@/api/axios";
 import "./GoldenRules.css";
 
+interface AuditEntry {
+    action: string;
+    type: string;
+    by: string;
+    at: string;
+    correction_id?: string;
+    patient_id?: string;
+}
+
 interface RuleItem {
     id?: string;
     text: string;
@@ -30,6 +39,10 @@ interface RuleItem {
     processed?: boolean;
     processed_at?: string;
     processed_by?: string;
+    created_by?: string;
+    created_at?: string;
+    updated_at?: string;
+    audit_log?: AuditEntry[];
 }
 
 interface RuleSection {
@@ -299,10 +312,38 @@ export default function GoldenRules() {
                         {sec.rules.map((r, idx) => (
                             <div key={idx} className={`gr-rule ${!r.active ? "gr-inactive" : ""} ${r.source === "dictionary" ? "gr-rule-dict" : ""}`}>
                                 <span className={`gr-priority-dot priority-${r.priority}`} title={PRIORITY_LABELS[r.priority]} />
-                                <span className="gr-rule-text">{r.text}</span>
-                                {r.source === "dictionary" && <span className="gr-dict-badge">Diccionario</span>}
-                                {!r.processed && r.active && <span className="gr-pending-badge">Pendiente</span>}
-                                {!r.active && <span className="gr-disabled-badge">Inactiva</span>}
+                                <div className="gr-rule-content">
+                                    <span className="gr-rule-text">{r.text}</span>
+                                    {r.source === "dictionary" && <span className="gr-dict-badge">Diccionario</span>}
+                                    {!r.processed && r.active && <span className="gr-pending-badge">Pendiente</span>}
+                                    {!r.active && <span className="gr-disabled-badge">Inactiva</span>}
+                                    {r.source === "dictionary" && (
+                                        <div className="gr-audit-info">
+                                            <span className="gr-audit-who">
+                                                Creado por <strong>{r.created_by || "sistema"}</strong>
+                                                {r.created_at && ` el ${new Date(r.created_at).toLocaleDateString("es-AR")}`}
+                                            </span>
+                                            {r.audit_log && r.audit_log.length > 0 && (
+                                                <details className="gr-audit-details">
+                                                    <summary className="gr-audit-toggle">Historial ({r.audit_log.length})</summary>
+                                                    <ul className="gr-audit-list">
+                                                        {r.audit_log.map((entry, i) => (
+                                                            <li key={i} className="gr-audit-entry">
+                                                                <span className="gr-audit-action">
+                                                                    {entry.action === "created" ? "🆕" : "🔄"}
+                                                                    {` ${entry.type || ""} por `}
+                                                                    <strong>{entry.by}</strong>
+                                                                </span>
+                                                                {entry.at && <span className="gr-audit-date"> — {new Date(entry.at).toLocaleString("es-AR")}</span>}
+                                                                {entry.patient_id && <span className="gr-audit-patient"> (paciente {entry.patient_id})</span>}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </details>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         ))}
                         {sec.rules.length === 0 && <div className="gr-empty">Sin reglas.</div>}

@@ -405,6 +405,80 @@
     margin-left: -4px;
 }
 
+/* ── Audit trail ── */
+.gr-rule-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.gr-audit-info {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #94a3b8;
+}
+
+.gr-audit-who {
+    color: #94a3b8;
+}
+
+.gr-audit-who strong {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.gr-audit-details {
+    margin-top: 4px;
+}
+
+.gr-audit-toggle {
+    cursor: pointer;
+    font-size: 10px;
+    color: #8b5cf6;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    user-select: none;
+    list-style: none;
+}
+
+.gr-audit-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.gr-audit-toggle::before {
+    content: "▸ ";
+}
+
+details[open] > .gr-audit-toggle::before {
+    content: "▾ ";
+}
+
+.gr-audit-list {
+    list-style: none;
+    padding: 4px 0 0 12px;
+    margin: 0;
+    border-left: 2px solid rgba(139, 92, 246, 0.15);
+}
+
+.gr-audit-entry {
+    padding: 3px 0;
+    font-size: 10px;
+    color: #64748b;
+    line-height: 1.5;
+}
+
+.gr-audit-entry strong {
+    color: #334155;
+}
+
+.gr-audit-date {
+    color: #94a3b8;
+}
+
+.gr-audit-patient {
+    color: #0284c7;
+    font-weight: 500;
+}
+
 /* ── Priority dots ── */
 .gr-priority-dot {
     width: 9px;
