@@ -2483,6 +2483,24 @@
     color: #334155;
 }
 
+/* ========== CORRECTIONS: Who Column ========== */
+.fb-td-who {
+    white-space: nowrap;
+    max-width: 180px;
+    font-size: 12px;
+}
+
+.fb-corr-who {
+    font-weight: 500;
+    color: #334155;
+}
+
+.fb-corr-approver {
+    font-size: 10px;
+    color: #8b5cf6;
+    font-weight: 600;
+}
+
 /* ========== CORRECTIONS: Approval Status Badges ========== */
 .fb-corr-status-badge {
     display: inline-flex;
