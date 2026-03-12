@@ -1404,7 +1404,27 @@ export default function FeedbackDashboard() {
                                                                 <span className="fb-corr-section">{SECTION_LABELS[rule.target_section] || rule.target_section}</span>
                                                             </td>
                                                             <td>
-                                                                <span className="fb-dict-freq">{rule.frequency}×</span>
+                                                                <details className="fb-dict-freq-details">
+                                                                    <summary className="fb-dict-freq-summary">
+                                                                        <span className="fb-dict-freq">{rule.frequency}×</span>
+                                                                    </summary>
+                                                                    <div className="fb-dict-freq-popup">
+                                                                        <div className="fb-dict-freq-creator">
+                                                                            👤 <strong>{rule.created_by || "sistema"}</strong>
+                                                                        </div>
+                                                                        {rule.audit_log && rule.audit_log.length > 0 && (
+                                                                            <ul className="fb-dict-audit-list">
+                                                                                {rule.audit_log.map((entry, idx) => (
+                                                                                    <li key={idx}>
+                                                                                        {entry.action === "created" ? "🆕" : entry.action === "processed" ? "✅" : "🔄"}{" "}
+                                                                                        {entry.type || entry.action} por <strong>{entry.by}</strong>
+                                                                                        {entry.at && <span className="fb-dict-audit-date"> — {new Date(entry.at).toLocaleString("es-AR")}</span>}
+                                                                                    </li>
+                                                                                ))}
+                                                                            </ul>
+                                                                        )}
+                                                                    </div>
+                                                                </details>
                                                             </td>
                                                             <td>
                                                                 <span className="fb-dict-creator">{rule.created_by || "sistema"}</span>

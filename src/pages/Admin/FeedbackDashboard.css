@@ -2599,6 +2599,61 @@
     min-width: 28px;
     height: 20px;
     padding: 0 6px;
+    cursor: pointer;
+}
+
+.fb-dict-freq-details {
+    position: relative;
+}
+
+.fb-dict-freq-summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.fb-dict-freq-summary::-webkit-details-marker {
+    display: none;
+}
+
+.fb-dict-freq-summary .fb-dict-freq:hover {
+    filter: brightness(1.15);
+    transform: scale(1.05);
+    transition: all 0.15s;
+}
+
+.fb-dict-freq-popup {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 100;
+    margin-top: 6px;
+    min-width: 260px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 12px 14px;
+    animation: fb-popup-in 0.15s ease-out;
+}
+
+@keyframes fb-popup-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fb-dict-freq-creator {
+    font-size: 13px;
+    color: #1e293b;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .fb-dict-creator {
