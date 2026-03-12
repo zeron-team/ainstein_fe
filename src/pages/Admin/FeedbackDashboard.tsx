@@ -238,7 +238,8 @@ export default function FeedbackDashboard() {
 
     // Estado para correcciones de items entre secciones
     type CorrectionEntry = { _id: string; epc_id: string; item: string; from_section: string; to_section: string | null; action: string; user_id: string | null; user_name: string | null; created_at: string | null; patient_id: string | null; patient_name: string | null; approval_status: string; approved_by: string | null; approved_at: string | null };
-    type DictionaryRule = { id: string; item_pattern: string; target_section: string; frequency: number; created_at: string | null; updated_at: string | null };
+    type AuditEntry = { action: string; by: string; at: string; patient_id?: string; type?: string };
+    type DictionaryRule = { id: string; item_pattern: string; target_section: string; frequency: number; created_by: string; created_at: string | null; updated_at: string | null; audit_log?: AuditEntry[] };
     const [correctionsData, setCorrectionsData] = useState<CorrectionEntry[]>([]);
     const [loadingCorrections, setLoadingCorrections] = useState(false);
     const [dictionaryRules, setDictionaryRules] = useState<DictionaryRule[]>([]);
@@ -1391,6 +1392,7 @@ export default function FeedbackDashboard() {
                                                         <th>Item (patrón)</th>
                                                         <th>Sección destino</th>
                                                         <th>Frecuencia</th>
+                                                        <th>Creado por</th>
                                                         <th>Última actualización</th>
                                                     </tr>
                                                 </thead>
@@ -1403,6 +1405,23 @@ export default function FeedbackDashboard() {
                                                             </td>
                                                             <td>
                                                                 <span className="fb-dict-freq">{rule.frequency}×</span>
+                                                            </td>
+                                                            <td>
+                                                                <span className="fb-dict-creator">{rule.created_by || "sistema"}</span>
+                                                                {rule.audit_log && rule.audit_log.length > 0 && (
+                                                                    <details className="fb-dict-audit">
+                                                                        <summary className="fb-dict-audit-toggle">{rule.audit_log.length} acción{rule.audit_log.length > 1 ? "es" : ""}</summary>
+                                                                        <ul className="fb-dict-audit-list">
+                                                                            {rule.audit_log.map((entry, idx) => (
+                                                                                <li key={idx}>
+                                                                                    {entry.action === "created" ? "🆕" : "🔄"} por <strong>{entry.by}</strong>
+                                                                                    {entry.at && <span className="fb-dict-audit-date"> — {new Date(entry.at).toLocaleString("es-AR")}</span>}
+                                                                                    {entry.patient_id && <span className="fb-dict-audit-patient"> (pac. {entry.patient_id})</span>}
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </details>
+                                                                )}
                                                             </td>
                                                             <td className="fb-td-date">{rule.updated_at ? timeAgo(rule.updated_at) : "—"}</td>
                                                         </tr>
