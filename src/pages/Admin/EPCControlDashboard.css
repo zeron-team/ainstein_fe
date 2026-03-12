@@ -436,6 +436,11 @@
     color: #dc2626;
 }
 
+.rating-badge.validation {
+    background: rgba(2, 132, 199, 0.12);
+    color: #0284c7;
+}
+
 /* Feedback text */
 .td-feedback {
     max-width: 280px;

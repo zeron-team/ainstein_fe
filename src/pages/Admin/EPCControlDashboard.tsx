@@ -43,6 +43,7 @@ const SECTION_LABELS: Record<string, string> = {
     medicacion: "Tratam.",
     indicaciones_alta: "Ind. alta",
     recomendaciones: "Recom.",
+    "validación": "Validación",
 };
 
 function formatDate(iso: string | null): string {
@@ -972,10 +973,11 @@ export default function EPCControlDashboard() {
                                             <span className="section-pill">{SECTION_LABELS[ev.section] || ev.section}</span>
                                         </td>
                                         <td>
-                                            <span className={`rating-badge ${ev.rating}`}>
+                                            <span className={`rating-badge ${ev.rating === "validación" ? "validation" : ev.rating}`}>
                                                 {ev.rating === "ok" && <><FaThumbsUp /> OK</>}
                                                 {ev.rating === "partial" && <><FaMeh /> Parcial</>}
                                                 {ev.rating === "bad" && <><FaThumbsDown /> Mal</>}
+                                                {ev.rating === "validación" && <><FaCheckCircle /> Validación</>}
                                             </span>
                                         </td>
                                         <td className="td-feedback">{ev.feedback_text || <span style={{ color: "#cbd5e1" }}>—</span>}</td>
