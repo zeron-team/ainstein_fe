@@ -1,5 +1,5 @@
 // src/pages/Admin/EPCControlDashboard.tsx
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import api from "@/api/axios";
 import {
     FaChartBar,
@@ -116,9 +116,21 @@ type EPCRow = {
     partial_count: number;
     bad_count: number;
     ok_pct: number;
+    omissions_count: number;
+    repetitions_count: number;
+    confusing_count: number;
+    dias_internacion: number | null;
     epc_created: string | null;
     first_evaluation: string | null;
     last_evaluation: string | null;
+};
+
+type SectionEvalDetail = {
+    section: string;
+    rating: string;
+    has_omissions: boolean | null;
+    has_repetitions: boolean | null;
+    is_confusing: boolean | null;
 };
 
 type EPCEvaluatorRow = {
@@ -126,11 +138,17 @@ type EPCEvaluatorRow = {
     patient_name: string;
     evaluator_name: string;
     evaluator_id: string | null;
+    is_validator_only?: boolean;
     total_evaluations: number;
     ok_count: number;
     partial_count: number;
     bad_count: number;
     ok_pct: number;
+    omissions_count: number;
+    repetitions_count: number;
+    confusing_count: number;
+    evaluations_detail?: SectionEvalDetail[];
+    dias_internacion: number | null;
     epc_created: string | null;
     first_evaluation: string | null;
     last_evaluation: string | null;
@@ -180,6 +198,21 @@ export default function EPCControlDashboard() {
 
     // EPC table: group/ungroup evaluators
     const [epcGrouped, setEpcGrouped] = useState(true);
+
+    // EPC table: expanded rows for ungrouped view
+    const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+
+    const toggleExpandedRow = (rowKey: string) => {
+        setExpandedRows(prev => {
+            const next = new Set(prev);
+            if (next.has(rowKey)) {
+                next.delete(rowKey);
+            } else {
+                next.add(rowKey);
+            }
+            return next;
+        });
+    };
 
     // EPC table: date filters
     const [epcDateFrom, setEpcDateFrom] = useState("");
@@ -462,29 +495,54 @@ export default function EPCControlDashboard() {
                 "Paciente": ep.patient_name,
                 "Evaluadores": ep.evaluators.join(", "),
                 "Evaluaciones": ep.total_evaluations,
-                "OK": ep.ok_count,
-                "Parcial": ep.partial_count,
-                "Mal": ep.bad_count,
-                "% OK": ep.ok_pct,
+                "Días Internación": ep.dias_internacion ?? "",
                 "Creación EPC": ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "",
                 "Última eval.": ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "",
             }));
         } else {
-            rows = filteredEpcEvaluators.map(ep => ({
-                "Paciente": ep.patient_name,
-                "Evaluador": ep.evaluator_name,
-                "Evaluaciones": ep.total_evaluations,
-                "OK": ep.ok_count,
-                "Parcial": ep.partial_count,
-                "Mal": ep.bad_count,
-                "% OK": ep.ok_pct,
-                "Creación EPC": ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "",
-                "Última eval.": ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "",
-            }));
+            rows = filteredEpcEvaluators.flatMap(ep => {
+                const mainRow = {
+                    "Paciente": ep.patient_name,
+                    "Evaluador": ep.evaluator_name,
+                    "Secciones": `${ep.evaluations_detail?.length || 0} secciones`,
+                    "Evaluaciones": ep.total_evaluations,
+                    "OK": ep.ok_count,
+                    "Parcial": ep.partial_count,
+                    "Mal": ep.bad_count,
+                    "% OK": ep.ok_pct,
+                    "Omisión": ep.omissions_count > 0 ? "Sí" : "No",
+                    "Repetición": ep.repetitions_count > 0 ? "Sí" : "No",
+                    "Confuso": ep.confusing_count > 0 ? "Sí" : "No",
+                    "Días Internación": ep.dias_internacion ?? "",
+                    "Creación EPC": ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "",
+                    "Última eval.": ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "",
+                };
+
+                const subRows = (ep.evaluations_detail || []).map(det => ({
+                    "Paciente": "  ↳ Detalles",
+                    "Evaluador": "",
+                    "Secciones": SECTION_LABELS[det.section] || det.section,
+                    "Evaluaciones": 1,
+                    "OK": det.rating === "ok" ? 1 : 0,
+                    "Parcial": det.rating === "partial" ? 1 : 0,
+                    "Mal": det.rating === "bad" ? 1 : 0,
+                    "% OK": det.rating === "ok" ? "100%" : "0%",
+                    "Omisión": det.has_omissions ? "Sí" : "No",
+                    "Repetición": det.has_repetitions ? "Sí" : "No",
+                    "Confuso": det.is_confusing ? "Sí" : "No",
+                    "Días Internación": "",
+                    "Creación EPC": "",
+                    "Última eval.": "",
+                }));
+
+                return [mainRow, ...subRows];
+            });
         }
 
         const ws = XLSX.utils.json_to_sheet(rows);
-        ws["!cols"] = [{ wch: 25 }, { wch: 25 }, { wch: 14 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 14 }, { wch: 14 }];
+        ws["!cols"] = epcGrouped
+            ? [{ wch: 25 }, { wch: 30 }, { wch: 14 }, { wch: 18 }, { wch: 14 }, { wch: 14 }]
+            : [{ wch: 25 }, { wch: 25 }, { wch: 30 }, { wch: 14 }, { wch: 8 }, { wch: 10 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 14 }, { wch: 14 }];
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, sheetName);
         const buf = XLSX.write(wb, { bookType: "xlsx", type: "array" });
@@ -514,7 +572,9 @@ export default function EPCControlDashboard() {
         }
 
         const evalColHeader = epcGrouped ? "Evaluadores" : "Evaluador";
-        const head = [["Paciente", evalColHeader, "Evaluaciones", "OK", "Parcial", "Mal", "% OK", "Creación", "Última eval."]];
+        const head = epcGrouped
+            ? [["Paciente", evalColHeader, "Evaluaciones", "Días Int.", "Creación", "Última eval."]]
+            : [["Paciente", evalColHeader, "Secciones", "Evaluaciones", "OK", "Parcial", "Mal", "% OK", "Omisión", "Repetición", "Confuso", "Días Int.", "Creación", "Última eval."]];
 
         let body: any[][];
         if (epcGrouped) {
@@ -522,25 +582,48 @@ export default function EPCControlDashboard() {
                 ep.patient_name,
                 ep.evaluators.join(", "),
                 ep.total_evaluations,
-                ep.ok_count,
-                ep.partial_count,
-                ep.bad_count,
-                `${ep.ok_pct}%`,
+                ep.dias_internacion ?? "—",
                 ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "—",
                 ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "—",
             ]);
         } else {
-            body = filteredEpcEvaluators.map(ep => [
-                ep.patient_name,
-                ep.evaluator_name,
-                ep.total_evaluations,
-                ep.ok_count,
-                ep.partial_count,
-                ep.bad_count,
-                `${ep.ok_pct}%`,
-                ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "—",
-                ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "—",
-            ]);
+            body = filteredEpcEvaluators.flatMap(ep => {
+                const mainRow = [
+                    ep.patient_name,
+                    ep.evaluator_name,
+                    `${ep.evaluations_detail?.length || 0} secciones`,
+                    ep.total_evaluations,
+                    ep.ok_count,
+                    ep.partial_count,
+                    ep.bad_count,
+                    `${ep.ok_pct}%`,
+                    ep.omissions_count > 0 ? "Sí" : "No",
+                    ep.repetitions_count > 0 ? "Sí" : "No",
+                    ep.confusing_count > 0 ? "Sí" : "No",
+                    ep.dias_internacion ?? "—",
+                    ep.epc_created ? new Date(ep.epc_created).toLocaleDateString("es-AR") : "—",
+                    ep.last_evaluation ? new Date(ep.last_evaluation).toLocaleDateString("es-AR") : "—",
+                ];
+
+                const subRows = (ep.evaluations_detail || []).map(det => [
+                    "  ↳ Detalles",
+                    "",
+                    SECTION_LABELS[det.section] || det.section,
+                    1,
+                    det.rating === "ok" ? 1 : 0,
+                    det.rating === "partial" ? 1 : 0,
+                    det.rating === "bad" ? 1 : 0,
+                    det.rating === "ok" ? "100%" : "0%",
+                    det.has_omissions ? "Sí" : "No",
+                    det.has_repetitions ? "Sí" : "No",
+                    det.is_confusing ? "Sí" : "No",
+                    "",
+                    "",
+                    "",
+                ]);
+
+                return [mainRow, ...subRows];
+            });
         }
 
         autoTable(doc, {
@@ -832,18 +915,27 @@ export default function EPCControlDashboard() {
                                         <th onClick={() => handleEpcSort("total_evaluations")} className="sortable num">
                                             Evaluaciones <SortIcon col="total_evaluations" current={epcSortKey} dir={epcSortDir} />
                                         </th>
-                                        <th onClick={() => handleEpcSort("ok_count")} className="sortable num">
-                                            <FaThumbsUp className="th-icon ok" /> OK <SortIcon col="ok_count" current={epcSortKey} dir={epcSortDir} />
-                                        </th>
-                                        <th onClick={() => handleEpcSort("partial_count")} className="sortable num">
-                                            <FaMeh className="th-icon partial" /> Parcial <SortIcon col="partial_count" current={epcSortKey} dir={epcSortDir} />
-                                        </th>
-                                        <th onClick={() => handleEpcSort("bad_count")} className="sortable num">
-                                            <FaThumbsDown className="th-icon bad" /> Mal <SortIcon col="bad_count" current={epcSortKey} dir={epcSortDir} />
-                                        </th>
-                                        <th onClick={() => handleEpcSort("ok_pct")} className="sortable num">
-                                            % OK <SortIcon col="ok_pct" current={epcSortKey} dir={epcSortDir} />
-                                        </th>
+                                        {!epcGrouped && (
+                                            <>
+                                                <th>Secciones</th>
+                                                <th onClick={() => handleEpcSort("ok_count")} className="sortable num">
+                                                    <FaThumbsUp className="th-icon ok" /> OK <SortIcon col="ok_count" current={epcSortKey} dir={epcSortDir} />
+                                                </th>
+                                                <th onClick={() => handleEpcSort("partial_count")} className="sortable num">
+                                                    <FaMeh className="th-icon partial" /> Parcial <SortIcon col="partial_count" current={epcSortKey} dir={epcSortDir} />
+                                                </th>
+                                                <th onClick={() => handleEpcSort("bad_count")} className="sortable num">
+                                                    <FaThumbsDown className="th-icon bad" /> Mal <SortIcon col="bad_count" current={epcSortKey} dir={epcSortDir} />
+                                                </th>
+                                                <th onClick={() => handleEpcSort("ok_pct")} className="sortable num">
+                                                    % OK <SortIcon col="ok_pct" current={epcSortKey} dir={epcSortDir} />
+                                                </th>
+                                                <th className="num" title="Secciones con omisiones detectadas">Omisión</th>
+                                                <th className="num" title="Secciones con repeticiones detectadas">Repetición</th>
+                                                <th className="num" title="Secciones marcadas como confusas">Confuso</th>
+                                            </>
+                                        )}
+                                        <th className="num" title="Días de internación del paciente">Días Int.</th>
                                         <th onClick={() => handleEpcSort("epc_created")} className="sortable">
                                             Creación EPC <SortIcon col="epc_created" current={epcSortKey} dir={epcSortDir} />
                                         </th>
@@ -855,7 +947,6 @@ export default function EPCControlDashboard() {
                                 <tbody>
                                     {/* ===== GROUPED MODE ===== */}
                                     {epcGrouped && filteredEpcs.map(ep => {
-                                        const perfClass = ep.ok_pct >= 60 ? "perf-good" : ep.ok_pct >= 30 ? "perf-medium" : "perf-low";
                                         return (
                                             <tr key={ep.epc_id}>
                                                 <td className="td-user">
@@ -873,13 +964,8 @@ export default function EPCControlDashboard() {
                                                     </div>
                                                 </td>
                                                 <td className="num"><strong>{ep.total_evaluations}</strong></td>
-                                                <td className="num ok-val">{ep.ok_count}</td>
-                                                <td className="num partial-val">{ep.partial_count}</td>
-                                                <td className="num bad-val">{ep.bad_count}</td>
-                                                <td className="num">
-                                                    <span className={`perf-badge ${perfClass}`}>{ep.ok_pct}%</span>
-                                                </td>
-                                                <td className="td-date" title={formatDate(ep.epc_created)}>{timeAgo(ep.epc_created)}</td>
+                                                <td className="num">{ep.dias_internacion ?? "—"}</td>
+                                                <td className="td-date">{formatDate(ep.epc_created)}</td>
                                                 <td className="td-date" title={formatDate(ep.last_evaluation)}>{timeAgo(ep.last_evaluation)}</td>
                                             </tr>
                                         );
@@ -887,32 +973,90 @@ export default function EPCControlDashboard() {
                                     {/* ===== UNGROUPED MODE ===== */}
                                     {!epcGrouped && filteredEpcEvaluators.map(ep => {
                                         const perfClass = ep.ok_pct >= 60 ? "perf-good" : ep.ok_pct >= 30 ? "perf-medium" : "perf-low";
+                                        const rowKey = `${ep.epc_id}__${ep.evaluator_name}`;
+                                        const isExpanded = expandedRows.has(rowKey);
+                                        const hasDetails = ep.evaluations_detail && ep.evaluations_detail.length > 0;
+                                        
                                         return (
-                                            <tr key={`${ep.epc_id}__${ep.evaluator_name}`}>
-                                                <td className="td-user">
-                                                    <div className="patient-icon">🏥</div>
-                                                    <span className="user-name">{ep.patient_name}</span>
-                                                </td>
-                                                <td>
-                                                    <span className="evaluator-pill">
-                                                        <span className="user-avatar mini">{(ep.evaluator_name || "?")[0].toUpperCase()}</span>
-                                                        {ep.evaluator_name}
-                                                    </span>
-                                                </td>
-                                                <td className="num"><strong>{ep.total_evaluations}</strong></td>
-                                                <td className="num ok-val">{ep.ok_count}</td>
-                                                <td className="num partial-val">{ep.partial_count}</td>
-                                                <td className="num bad-val">{ep.bad_count}</td>
-                                                <td className="num">
-                                                    <span className={`perf-badge ${perfClass}`}>{ep.ok_pct}%</span>
-                                                </td>
-                                                <td className="td-date" title={formatDate(ep.epc_created)}>{timeAgo(ep.epc_created)}</td>
-                                                <td className="td-date" title={formatDate(ep.last_evaluation)}>{timeAgo(ep.last_evaluation)}</td>
-                                            </tr>
+                                            <React.Fragment key={rowKey}>
+                                                <tr 
+                                                    onClick={() => hasDetails && toggleExpandedRow(rowKey)}
+                                                    className={hasDetails ? "expandable-row" : ""}
+                                                    style={{ cursor: hasDetails ? "pointer" : "default" }}
+                                                >
+                                                    <td className="td-user">
+                                                        <div className="patient-icon">🏥</div>
+                                                        <span className="user-name">{ep.patient_name}</span>
+                                                    </td>
+                                                    <td>
+                                                        <span className="evaluator-pill">
+                                                            <span className="user-avatar mini">{(ep.evaluator_name || "?")[0].toUpperCase()}</span>
+                                                            {ep.evaluator_name}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#64748b" }}>
+                                                            {hasDetails && (
+                                                                <span style={{ fontSize: 10, transition: "transform 0.2s", transform: isExpanded ? "rotate(90deg)" : "rotate(0deg)" }}>
+                                                                    ▶
+                                                                </span>
+                                                            )}
+                                                            <span style={{ fontSize: 11 }}>{ep.evaluations_detail?.length || 0} secciones</span>
+                                                        </div>
+                                                    </td>
+                                                    <td className="num"><strong>{ep.total_evaluations}</strong></td>
+                                                    <td className="num ok-val">{ep.ok_count}</td>
+                                                    <td className="num partial-val">{ep.partial_count}</td>
+                                                    <td className="num bad-val">{ep.bad_count}</td>
+                                                    <td className="num">
+                                                        <span className={`perf-badge ${perfClass}`}>{ep.ok_pct}%</span>
+                                                    </td>
+                                                    <td className="num">{ep.omissions_count > 0 ? <span className="badge badge-error">Sí</span> : <span className="badge badge-success">No</span>}</td>
+                                                    <td className="num">{ep.repetitions_count > 0 ? <span className="badge badge-warning">Sí</span> : <span className="badge badge-success">No</span>}</td>
+                                                    <td className="num">{ep.confusing_count > 0 ? <span className="badge badge-error">Sí</span> : <span className="badge badge-success">No</span>}</td>
+                                                    <td className="num">{ep.dias_internacion ?? "—"}</td>
+                                                    <td className="td-date">{formatDate(ep.epc_created)}</td>
+                                                    <td className="td-date" title={formatDate(ep.last_evaluation)}>{timeAgo(ep.last_evaluation)}</td>
+                                                </tr>
+                                                {isExpanded && ep.evaluations_detail?.map((det, idx) => {
+                                                    const subPerfClass = det.rating === "ok" ? "perf-good" : det.rating === "partial" ? "perf-medium" : "perf-low";
+                                                    return (
+                                                        <tr key={`sub_${rowKey}_${idx}`} style={{ backgroundColor: "#f8fafc" }}>
+                                                            <td colSpan={2} style={{ paddingLeft: "3rem", color: "#64748b", fontSize: 12 }}>
+                                                                ↳ Detalles de sección:
+                                                            </td>
+                                                            <td style={{ padding: "4px 8px" }}>
+                                                                <span className="section-pill" style={{ fontSize: 11, padding: "2px 8px", backgroundColor: "#fff", border: "1px solid #e2e8f0" }}>
+                                                                    {SECTION_LABELS[det.section] || det.section}
+                                                                </span>
+                                                            </td>
+                                                            <td className="num" style={{ fontSize: 12 }}>1</td>
+                                                            <td className="num" style={{ fontSize: 12, color: det.rating === "ok" ? "#16a34a" : "#cbd5e1", fontWeight: det.rating === "ok" ? "bold": "normal" }}>
+                                                                {det.rating === "ok" ? "1" : "0"}
+                                                            </td>
+                                                            <td className="num" style={{ fontSize: 12, color: det.rating === "partial" ? "#ca8a04" : "#cbd5e1", fontWeight: det.rating === "partial" ? "bold": "normal" }}>
+                                                                {det.rating === "partial" ? "1" : "0"}
+                                                            </td>
+                                                            <td className="num" style={{ fontSize: 12, color: det.rating === "bad" ? "#dc2626" : "#cbd5e1", fontWeight: det.rating === "bad" ? "bold": "normal" }}>
+                                                                {det.rating === "bad" ? "1" : "0"}
+                                                            </td>
+                                                            <td className="num" style={{ fontSize: 12 }}>
+                                                                <span className={`perf-badge ${subPerfClass}`} style={{ fontSize: 10, padding: "1px 4px" }}>
+                                                                    {det.rating === "ok" ? "100%" : "0%"}
+                                                                </span>
+                                                            </td>
+                                                            <td className="num" style={{ fontSize: 12 }}>{det.has_omissions ? <span className="badge badge-error">1</span> : <span className="badge badge-success">0</span>}</td>
+                                                            <td className="num" style={{ fontSize: 12 }}>{det.has_repetitions ? <span className="badge badge-warning">1</span> : <span className="badge badge-success">0</span>}</td>
+                                                            <td className="num" style={{ fontSize: 12 }}>{det.is_confusing ? <span className="badge badge-error">1</span> : <span className="badge badge-success">0</span>}</td>
+                                                            <td colSpan={3}></td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </React.Fragment>
                                         );
                                     })}
                                     {((epcGrouped && filteredEpcs.length === 0) || (!epcGrouped && filteredEpcEvaluators.length === 0)) && (
-                                        <tr><td colSpan={9} className="epc-ctrl-empty">No se encontraron pacientes evaluados</td></tr>
+                                        <tr><td colSpan={epcGrouped ? 6 : 13} className="epc-ctrl-empty">No se encontraron pacientes evaluados</td></tr>
                                     )}
                                 </tbody>
                             </table>

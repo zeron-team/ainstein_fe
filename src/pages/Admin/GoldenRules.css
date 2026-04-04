@@ -146,52 +146,209 @@
 }
 
 /* ══════════════════════════════════════════════
-   TWO-COLUMN LAYOUT
+   INLINE PENDING DETAIL (Inside KPI)
    ══════════════════════════════════════════════ */
 
-.gr-columns {
-    display: grid;
-    grid-template-columns: 1fr 1.4fr;
-    gap: 20px;
-    align-items: start;
+.gr-stat-pending-block {
+    position: relative;
+    padding-bottom: 8px; /* Extra space for list */
+    justify-content: flex-start;
 }
 
-.gr-col-left,
-.gr-col-right {
-    min-width: 0;
+.gr-stat-pending-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+    width: 100%;
 }
 
-/* ── Group titles ── */
-.gr-group-title {
+.gr-stat-pending-item {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    gap: 4px;
+    padding: 3px 6px;
+    border: 1px solid rgba(234, 88, 12, 0.2);
+    border-radius: 6px;
+    background: rgba(234, 88, 12, 0.05);
+    color: #ea580c;
+    font-size: 10px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: #64748b;
-    margin-bottom: 12px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: left;
+    width: 100%;
 }
 
-.gr-group-learned {
-    color: #8b5cf6;
+.gr-stat-pending-item:hover {
+    background: rgba(234, 88, 12, 0.12);
+    border-color: rgba(234, 88, 12, 0.3);
 }
 
-/* ── Filters ── */
-.gr-filters {
+.gr-pending-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #ea580c;
+    flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════
+   TAB BAR
+   ══════════════════════════════════════════════ */
+
+.gr-tabbar {
     display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 4px;
+    padding: 6px;
+    background: #f1f5f9;
+    border-radius: 14px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
 }
 
+.gr-tabbar::-webkit-scrollbar {
+    height: 4px;
+}
+
+.gr-tabbar::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 4px;
+}
+
+.gr-tab {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 14px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.gr-tab:hover {
+    background: rgba(255, 255, 255, 0.6);
+    color: #334155;
+}
+
+.gr-tab-active {
+    background: #ffffff;
+    color: #0284c7;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.gr-tab-icon {
+    font-size: 11px;
+    display: flex;
+    flex-shrink: 0;
+}
+
+.gr-tab-label {
+    font-size: 11px;
+}
+
+.gr-tab-count {
+    font-size: 9px;
+    font-weight: 800;
+    color: #ffffff;
+    background: rgba(148, 163, 184, 0.5);
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    line-height: 1;
+}
+
+.gr-tab-active .gr-tab-count {
+    background: #0284c7;
+}
+
+.gr-tab-has-pending {
+    /* subtle orange accent for tabs with pending */
+}
+
+.gr-tab-pending-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ea580c;
+    box-shadow: 0 0 6px rgba(234, 88, 12, 0.5);
+    animation: grPulse 2s ease-in-out infinite;
+}
+
+@keyframes grPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ══════════════════════════════════════════════
+   TAB CONTENT PANEL
+   ══════════════════════════════════════════════ */
+
+.gr-tab-panel {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+}
+
+.gr-tab-content {
+    animation: grFadeIn 0.15s ease;
+}
+
+.gr-tab-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    background: #fafbfc;
+    flex-wrap: wrap;
+}
+
+.gr-tab-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+}
+
+.gr-tab-result-count {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: 600;
+    margin-left: auto;
+}
+
+.gr-rule-scroll {
+    padding: 8px 16px;
+    max-height: calc(100vh - 340px);
+    overflow-y: auto;
+}
+
+/* ── Filters (reused in toolbar) ── */
 .gr-filter {
     display: flex;
     align-items: center;
     gap: 4px;
-    flex: 1;
+    flex: 0 1 auto;
+    min-width: 140px;
 }
 
 .gr-filter-icon {
@@ -217,37 +374,7 @@
     border-color: #0284c7;
 }
 
-/* ── All rules panel (left) ── */
-.gr-all-rules {
-    border-radius: 16px;
-    border: 1px solid rgba(148, 163, 184, 0.3);
-    background: #ffffff;
-    padding: 10px;
-    max-height: calc(100vh - 300px);
-    overflow-y: auto;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    position: sticky;
-    top: 80px;
-}
-
-.gr-all-rule {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 7px 8px;
-    border-radius: 8px;
-    font-size: 12px;
-    transition: background 0.15s ease;
-}
-
-.gr-all-rule:hover {
-    background: rgba(2, 132, 199, 0.05);
-}
-
-.gr-all-rule.gr-inactive {
-    opacity: 0.4;
-}
-
+/* ── Section label in "Todos" tab ── */
 .gr-all-rule-section {
     flex-shrink: 0;
     font-size: 9px;
@@ -261,12 +388,9 @@
     min-width: 65px;
     text-align: center;
     white-space: nowrap;
+    margin-right: 6px;
 }
 
-.gr-all-rule-text {
-    color: #334155;
-    line-height: 1.4;
-}
 
 /* ── Section cards (right) ── */
 .gr-card {
@@ -396,6 +520,44 @@
     font-weight: 700;
     white-space: nowrap;
     letter-spacing: 0.03em;
+}
+
+.gr-learned-badge {
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: 0.03em;
+}
+
+/* ── Search input ── */
+.gr-filter-search {
+    flex: 1.5;
+}
+
+.gr-search-input {
+    width: 100%;
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(148, 163, 184, 0.3);
+    background: #f8fafc;
+    color: #334155;
+    transition: border-color 0.2s;
+    outline: none;
+    font-family: inherit;
+}
+
+.gr-search-input:focus {
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.1);
+}
+
+.gr-search-input::placeholder {
+    color: #94a3b8;
 }
 
 .gr-rule-dict {
@@ -850,4 +1012,57 @@ details[open]>.gr-audit-toggle::before {
         flex-direction: column;
         align-items: flex-start;
     }
+}
+/* Dictionary Rule Flow Styling */
+.gr-dict-transition-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.gr-dict-flow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.gr-flow-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  border: 1px solid transparent;
+}
+
+.gr-flow-from {
+  background: var(--surface-low);
+  color: var(--text-secondary);
+  border-color: var(--border-color);
+}
+
+.gr-flow-to {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.gr-flow-exclude {
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.gr-flow-arrow {
+  color: var(--text-tertiary);
+  font-size: 0.8rem;
+}
+
+.gr-flow-freq {
+  font-style: italic;
+  margin-left: 0.25rem;
+  opacity: 0.8;
 }

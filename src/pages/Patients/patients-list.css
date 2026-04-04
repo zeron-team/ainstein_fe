@@ -324,7 +324,7 @@
 /* TABLA: fixed evita que se “monte” el contenido */
 .patients-table {
   width: 100%;
-  min-width: 1120px;
+  min-width: 1200px;
   /* ✅ asegura layout pro, si no entra -> scroll */
   border-collapse: separate;
   border-spacing: 0;
@@ -394,12 +394,17 @@
   font-weight: 600;
 }
 
+.col-codigo {
+  width: 80px;
+  text-align: center;
+}
+
 .col-apellido {
-  width: 130px;
+  width: 120px;
 }
 
 .col-nombre {
-  width: 130px;
+  width: 120px;
 }
 
 .col-edad {

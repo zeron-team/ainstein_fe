@@ -10,7 +10,7 @@ import {
     FaArrowRight,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
-import "./welcome.css";
+import "./Welcome.css";
 
 const Welcome: React.FC = () => {
     return (

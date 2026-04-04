@@ -169,7 +169,7 @@ const AinsteinWsPage: React.FC = () => {
                 episodio: selected,
                 historia: historia,
                 // opcional:
-                // patient_id: `AINSTEIN_${selected.paciCodigo}`,
+                // patient_id: `AINSTEIN_${selected.paciCodigo}_${selected.inteCodigo}`,
                 use_ai: false,
             });
 

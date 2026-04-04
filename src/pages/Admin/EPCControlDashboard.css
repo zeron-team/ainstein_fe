@@ -802,3 +802,28 @@
         width: 100%;
     }
 }
+
+/* ========== Validator-only rows (SIN DATOS) ========== */
+.validator-only-row {
+    background: rgba(148, 163, 184, 0.04);
+}
+
+.validator-only-row:hover {
+    background: rgba(148, 163, 184, 0.08) !important;
+}
+
+.td-sin-datos {
+    text-align: center;
+}
+
+.sin-datos-badge {
+    display: inline-block;
+    padding: 4px 16px;
+    border-radius: 6px;
+    background: rgba(148, 163, 184, 0.12);
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}

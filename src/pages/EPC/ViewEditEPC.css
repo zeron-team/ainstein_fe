@@ -676,6 +676,37 @@ textarea.gen-textarea:focus {
   background: rgba(220, 38, 38, 0.1);
 }
 
+.fb-btn.hce_bad {
+  width: auto;
+  padding: 0 8px;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.fb-btn.hce_bad .hce-bad-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.fb-btn.hce_bad .hce-bad-icon {
+  font-size: 10px;
+}
+
+.fb-btn.hce_bad:hover,
+.fb-btn.hce_bad.active {
+  color: #7c3aed;
+  border-color: rgba(124, 58, 237, 0.5);
+  background: rgba(124, 58, 237, 0.1);
+}
+
+.fb-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Feedback Modal */
 .modal-overlay {
   position: fixed;

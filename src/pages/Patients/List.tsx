@@ -18,6 +18,7 @@ import {
   FaChevronDown,
   FaChevronRight,
   FaRegListAlt,
+  FaBrain,
   FaUser,
   FaVenusMars,
   FaHospitalAlt,
@@ -35,6 +36,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import "./patients-list.css";
 import { ImportHceModal } from "@/components/ImportHceModal";
+import { BrainProgress } from "@/components/BrainProgress";
 
 
 type PacienteItem = {
@@ -1332,6 +1334,7 @@ export default function PatientsList() {
             <thead>
               <tr>
                 <th className="col-num">#</th>
+                <th className="col-codigo">Código</th>
                 <th className="col-apellido">Apellido</th>
                 <th className="col-nombre">Nombre</th>
                 <th className="col-edad">Edad</th>
@@ -1349,7 +1352,7 @@ export default function PatientsList() {
             <tbody>
               {loading && (
                 <tr>
-                  <td colSpan={13} style={{ textAlign: "center" }}>
+                  <td colSpan={14} style={{ textAlign: "center" }}>
                     Cargando…
                   </td>
                 </tr>
@@ -1357,7 +1360,7 @@ export default function PatientsList() {
 
               {!loading && items.length === 0 && (
                 <tr>
-                  <td colSpan={13} style={{ textAlign: "center" }}>
+                  <td colSpan={14} style={{ textAlign: "center" }}>
                     No hay pacientes que coincidan con los filtros actuales.
                   </td>
                 </tr>
@@ -1372,6 +1375,18 @@ export default function PatientsList() {
                   return (
                     <tr key={p.id}>
                       <td className="col-num">{rowNum}</td>
+                      <td className="col-codigo" data-label="Código">
+                        <div className="patient-cell">
+                          {p.movimiento_id ? (
+                            <>
+                              <div className="patient-main mono" style={{ fontSize: "0.82rem" }}>{p.movimiento_id}</div>
+                              <div className="patient-sub mono" style={{ fontSize: "0.75rem", opacity: 0.7 }}>{(p.nombre || "").split("-")[0]}</div>
+                            </>
+                          ) : (
+                            <div className="patient-main mono" style={{ fontSize: "0.82rem", opacity: 0.5 }}>—</div>
+                          )}
+                        </div>
+                      </td>
                       <td className="col-apellido" data-label="Apellido">
                         <div className="patient-cell">
                           <div className="patient-main">{p.apellido}</div>
@@ -1624,22 +1639,9 @@ export default function PatientsList() {
         )
       }
 
-      {
-        brainThinking && (
-          <div className="epc-thinking-overlay">
-            <div className="epc-thinking-card">
-              <div className="epc-brain">
-                <div className="epc-brain-core" />
-              </div>
-              <div className="epc-thinking-text">Generando Epicrisis con IA…</div>
-              <div className="epc-progress">
-                <div className="epc-progress-bar" />
-              </div>
-              <div className="epc-thinking-sub">Analizando HCE, CIE-10 y contexto clínico…</div>
-            </div>
-          </div>
-        )
-      }
+      {brainThinking && (
+        <BrainProgress />
+      )}
 
       {/* Modal de Importación HCE */}
       {

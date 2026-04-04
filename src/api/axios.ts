@@ -12,47 +12,8 @@ const API_BASE_URL =
 // Helpers auth token
 // ==============================
 function getAuthTokenFromStorage(): string | null {
-  const candidates = [
-    "access_token",
-    "accessToken",
-    "token",
-    "jwt",
-    "id_token",
-    "auth_token",
-    "AUTH_TOKEN",
-    "ACCESS_TOKEN",
-  ];
-
-  for (const k of candidates) {
-    const v = localStorage.getItem(k);
-    if (v && v.trim()) return v.trim();
-  }
-  for (const k of candidates) {
-    const v = sessionStorage.getItem(k);
-    if (v && v.trim()) return v.trim();
-  }
-
-  // fallback: objetos tipo {access_token:"..."} o {token:"..."}
-  const objCandidates = ["auth", "session", "user", "tokens"];
-  for (const k of objCandidates) {
-    const raw = localStorage.getItem(k) || sessionStorage.getItem(k);
-    if (!raw) continue;
-    try {
-      const parsed = JSON.parse(raw);
-      const v =
-        parsed?.access_token ||
-        parsed?.accessToken ||
-        parsed?.token ||
-        parsed?.jwt ||
-        parsed?.id_token ||
-        parsed?.auth_token;
-      if (typeof v === "string" && v.trim()) return v.trim();
-    } catch {
-      // ignore
-    }
-  }
-
-  return null;
+  const token = localStorage.getItem("access_token");
+  return token && token.trim() ? token.trim() : null;
 }
 
 function toBearer(token: string | null): string | null {
@@ -90,6 +51,7 @@ const api = axios.create({
   withCredentials: false,
   headers: {
     "Content-Type": "application/json",
+    "Accept": "application/json",
   },
 });
 
@@ -122,9 +84,7 @@ api.interceptors.response.use(
       const url = error.config?.url || "";
       // Si es 401 en un endpoint que NO es login, limpiar tokens y redirigir
       if (!url.startsWith("/auth/")) {
-        const keys = ["token", "access_token", "AUTH_TOKEN", "ACCESS_TOKEN", "jwt", "id_token", "auth_token"];
-        keys.forEach((k) => localStorage.removeItem(k));
-        keys.forEach((k) => sessionStorage.removeItem(k));
+        localStorage.removeItem("access_token");
         delete (api.defaults.headers.common as any).Authorization;
         // Redirigir a login si no estamos ya ahí
         if (window.location.pathname !== "/login") {

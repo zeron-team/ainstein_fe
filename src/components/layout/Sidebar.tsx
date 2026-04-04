@@ -52,9 +52,14 @@ export default function Sidebar({ open, onClose }: Props) {
             title: "Back-office",
             items: [
               {
+                to: "/admin/golden-rules",
+                icon: <FaLightbulb />,
+                label: "Golden rules",
+              },
+              {
                 to: "/admin/feedback",
                 icon: <FaChartBar />,
-                label: "Feedback",
+                label: "feedBack",
               },
               {
                 to: "/admin/epc-control",
@@ -65,11 +70,6 @@ export default function Sidebar({ open, onClose }: Props) {
                 to: "/admin/costs",
                 icon: <FaDollarSign />,
                 label: "Costos IA",
-              },
-              {
-                to: "/admin/golden-rules",
-                icon: <FaLightbulb />,
-                label: "Golden Rules",
               },
             ],
           },

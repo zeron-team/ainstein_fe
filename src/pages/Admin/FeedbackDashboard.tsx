@@ -25,6 +25,7 @@ import {
     FaSearch,
 } from "react-icons/fa";
 
+import { useAuth } from "@/auth/AuthContext";
 import "./FeedbackDashboard.css";
 
 type FeedbackStats = {
@@ -33,11 +34,13 @@ type FeedbackStats = {
         ok: number;
         partial: number;
         bad: number;
+        hce_bad: number;
         ok_pct: number;
         partial_pct: number;
         bad_pct: number;
+        hce_bad_pct: number;
     };
-    by_section: Record<string, { ok: number; partial: number; bad: number; total: number }>;
+    by_section: Record<string, { ok: number; partial: number; bad: number; hce_bad: number; total: number }>;
     questions_summary: {
         omissions: number;
         repetitions: number;
@@ -207,6 +210,34 @@ export default function FeedbackDashboard() {
     // Estado para vista de Aprendizaje
     const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
     const [loadingInsights, setLoadingInsights] = useState(false);
+    const [activeSectionKey, setActiveSectionKey] = useState<string | null>(null);
+
+    const { user } = useAuth();
+    const [ruleTracking, setRuleTracking] = useState<Record<string, "leido" | "revisar">>({});
+
+    useEffect(() => {
+        if (user?.id) {
+            const saved = localStorage.getItem(`epc_rule_tracking_${user.id}`);
+            if (saved) {
+                try { setRuleTracking(JSON.parse(saved)); } catch (e) {}
+            }
+        }
+    }, [user?.id]);
+
+    const toggleRuleTracking = (ruleText: string, status: "leido" | "revisar") => {
+        setRuleTracking(prev => {
+            const next = { ...prev };
+            if (next[ruleText] === status) {
+                delete next[ruleText];
+            } else {
+                next[ruleText] = status;
+            }
+            if (user?.id) {
+                localStorage.setItem(`epc_rule_tracking_${user.id}`, JSON.stringify(next));
+            }
+            return next;
+        });
+    };
 
     // Estado para estadísticas de aprendizaje
     const [learningStats, setLearningStats] = useState<{
@@ -241,6 +272,8 @@ export default function FeedbackDashboard() {
     type AuditEntry = { action: string; by: string; at: string; patient_id?: string; type?: string };
     type DictionaryRule = { id: string; item_pattern: string; target_section: string; frequency: number; created_by: string; created_at: string | null; updated_at: string | null; audit_log?: AuditEntry[] };
     const [correctionsData, setCorrectionsData] = useState<CorrectionEntry[]>([]);
+    const [activeCorrectionSection, setActiveCorrectionSection] = useState<string | null>(null);
+    const [activeCorrectionStatusFilter, setActiveCorrectionStatusFilter] = useState<string | null>(null);
     const [loadingCorrections, setLoadingCorrections] = useState(false);
     const [dictionaryRules, setDictionaryRules] = useState<DictionaryRule[]>([]);
     const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -272,7 +305,7 @@ export default function FeedbackDashboard() {
         content: ""
     });
 
-    const openInfoModal = (type: "ok" | "partial" | "bad" | "total") => {
+    const openInfoModal = (type: "ok" | "partial" | "bad" | "hce_bad" | "total") => {
         const infos = {
             ok: {
                 title: "✅ OK - Feedback Positivo",
@@ -286,9 +319,13 @@ export default function FeedbackDashboard() {
                 title: "❌ Mal - Feedback Negativo",
                 content: "Indica que el usuario considera que la sección generada fue incorrecta o insatisfactoria.\n\n• La IA generó contenido inadecuado\n• El usuario tuvo que reescribir significativamente\n• Identifica áreas de mejora del modelo"
             },
+            hce_bad: {
+                title: "🟣 HCE - Problema en Historia Clínica",
+                content: "Indica que el problema no fue de la IA sino de la Historia Clínica Electrónica (HCE) de origen.\n\n• La HCE contenía datos insuficientes o incorrectos\n• La IA no pudo generar contenido adecuado por falta de información\n• No genera reglas de aprendizaje (no es culpa del modelo)"
+            },
             total: {
                 title: "📊 Total de Feedbacks",
-                content: "Suma de todos los feedbacks registrados (OK + Parcial + Mal).\n\n• Cada evaluación de sección cuenta como 1 feedback\n• Un EPC puede tener múltiples feedbacks (uno por sección)\n• Representa el volumen total de datos de entrenamiento"
+                content: "Suma de todos los feedbacks registrados (OK + Parcial + Mal + HCE).\n\n• Cada evaluación de sección cuenta como 1 feedback\n• Un EPC puede tener múltiples feedbacks (uno por sección)\n• Representa el volumen total de datos de entrenamiento"
             }
         };
         setInfoModal({ open: true, ...infos[type] });
@@ -515,9 +552,6 @@ export default function FeedbackDashboard() {
                             <FaBrain /> Aprendizaje
                         </button>
                     </div>
-                    <button className="fb-btn-refresh" onClick={activeTab === "stats" ? loadStats : loadGrouped}>
-                        Actualizar
-                    </button>
                 </div>
             </div>
 
@@ -556,6 +590,16 @@ export default function FeedbackDashboard() {
                                 <div className="fb-card-label">Mal ({summary.bad_pct}%)</div>
                             </div>
                         </div>
+                        <div className="fb-card fb-card-hce-bad">
+                            <div className="fb-card-info-icon" onClick={() => openInfoModal("hce_bad")}>
+                                <FaInfoCircle />
+                            </div>
+                            <div className="fb-card-icon"><FaThumbsDown /></div>
+                            <div className="fb-card-data">
+                                <div className="fb-card-value">{summary.hce_bad}</div>
+                                <div className="fb-card-label">HCE ({summary.hce_bad_pct}%)</div>
+                            </div>
+                        </div>
                         <div className="fb-card fb-card-total">
                             <div className="fb-card-info-icon" onClick={() => openInfoModal("total")}>
                                 <FaInfoCircle />
@@ -577,6 +621,7 @@ export default function FeedbackDashboard() {
                                     const okPct = data.total > 0 ? (data.ok / data.total) * 100 : 0;
                                     const partialPct = data.total > 0 ? (data.partial / data.total) * 100 : 0;
                                     const badPct = data.total > 0 ? (data.bad / data.total) * 100 : 0;
+                                    const hceBadPct = data.total > 0 ? ((data.hce_bad || 0) / data.total) * 100 : 0;
                                     const isWarning = badPct >= 20;
 
                                     return (
@@ -589,6 +634,7 @@ export default function FeedbackDashboard() {
                                                 <div className="fb-bar-ok" style={{ width: `${okPct}%` }} title={`OK: ${data.ok}`} />
                                                 <div className="fb-bar-partial" style={{ width: `${partialPct}%` }} title={`Parcial: ${data.partial}`} />
                                                 <div className="fb-bar-bad" style={{ width: `${badPct}%` }} title={`Mal: ${data.bad}`} />
+                                                {hceBadPct > 0 && <div className="fb-bar-hce-bad" style={{ width: `${hceBadPct}%` }} title={`HCE: ${data.hce_bad || 0}`} />}
                                             </div>
                                             <div className="fb-section-stats">
                                                 <span className="stat-ok">{okPct.toFixed(0)}%</span>
@@ -745,6 +791,7 @@ export default function FeedbackDashboard() {
                                                     {fb.rating === "ok" && <FaThumbsUp />}
                                                     {fb.rating === "partial" && <FaMeh />}
                                                     {fb.rating === "bad" && <FaThumbsDown />}
+                                                    {fb.rating === "hce_bad" && <><span style={{fontSize:"9px",fontWeight:700,marginRight:2}}>HCE</span><FaThumbsDown /></>}
                                                 </span>
                                             </td>
                                             <td className="fb-td-text">{fb.feedback_text}</td>
@@ -862,6 +909,8 @@ export default function FeedbackDashboard() {
                                                                 {sec.rating === "ok" && <FaThumbsUp />}
                                                                 {sec.rating === "partial" && <FaMeh />}
                                                                 {sec.rating === "bad" && <FaThumbsDown />}
+                                                                {sec.rating === "hce_bad" && <><span style={{fontSize:"9px",fontWeight:700,marginRight:2}}>HCE</span><FaThumbsDown /></>}
+                                                                {sec.rating === "sin_calificacion" && <FaInfoCircle />}
                                                             </span>
                                                             <span className="fb-section-name">
                                                                 {SECTION_LABELS[sec.section] || sec.section}
@@ -919,7 +968,7 @@ export default function FeedbackDashboard() {
                                     <div>
                                         <h2>Reglas de Aprendizaje Continuo</h2>
                                         <p>
-                                            Basado en <b>{insightsData.total_feedbacks_analyzed}</b> evaluaciones analizadas.
+                                            Basado en <b>{learningStats?.summary?.total_feedbacks_processed || insightsData.total_feedbacks_analyzed}</b> evaluaciones procesadas.
                                             {insightsData.computed_at && (
                                                 <span className="fb-learning-date">
                                                     {" "}• Actualizado: {formatDate(insightsData.computed_at)}
@@ -950,27 +999,36 @@ export default function FeedbackDashboard() {
                                         </div>
                                     </div>
                                 )}
-                                <button
-                                    className="fb-btn-refresh"
-                                    onClick={async () => {
-                                        setLoadingInsights(true);
-                                        try {
-                                            const res = await api.get("/epc/feedback/insights?force_refresh=true");
-                                            setInsightsData(res.data);
-                                        } catch (e) {
-                                            console.error(e);
-                                        } finally {
-                                            setLoadingInsights(false);
-                                        }
-                                    }}
-                                >
-                                    Recalcular
-                                </button>
                             </div>
+
+                            {/* Sub-tabs por sección */}
+                            {insightsData.sections.length > 0 && (
+                                <div className="fb-learning-subtabs">
+                                    {insightsData.sections.map(section => {
+                                        const currentSection = activeSectionKey 
+                                            ? insightsData.sections.find(s => s.key === activeSectionKey) || insightsData.sections[0]
+                                            : insightsData.sections[0];
+                                        return (
+                                            <button
+                                                key={section.key}
+                                                className={`fb-learning-subtab ${currentSection?.key === section.key ? "active" : ""}`}
+                                                onClick={() => setActiveSectionKey(section.key)}
+                                            >
+                                                {section.name}
+                                                {section.stats?.negative_pct > 50 && <span className="fb-badge-warning" title="Alta tasa de problemas" style={{marginLeft: "6px"}}>⚠️</span>}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
 
                             {/* Cards por sección */}
                             <div className="fb-learning-grid">
-                                {insightsData.sections.map((section) => (
+                                {(() => {
+                                    const currentSection = activeSectionKey 
+                                        ? insightsData.sections.find(s => s.key === activeSectionKey) || insightsData.sections[0]
+                                        : insightsData.sections[0];
+                                    return currentSection ? [currentSection].map((section) => (
                                     <div
                                         key={section.key}
                                         className={`fb-learning-card ${section.stats.negative_pct > 50 ? "problematic" : section.stats.ok_pct > 70 ? "good" : ""}`}
@@ -1025,8 +1083,10 @@ export default function FeedbackDashboard() {
                                             </div>
                                         )}
 
-                                        {/* Problemas categorizados con barras - COLAPSABLE */}
-                                        {section.problems && section.problems.length > 0 && (
+                                        {/* 3 Column Layout for Problems & Rules */}
+                                        <div className="fb-learning-3cols">
+                                            {/* Problemas categorizados con barras - COLAPSABLE */}
+                                            {section.problems && section.problems.length > 0 && (
                                             <div className="fb-collapsible-section">
                                                 <button
                                                     className="fb-collapsible-header"
@@ -1104,12 +1164,31 @@ export default function FeedbackDashboard() {
                                                                             const ruleText = typeof rule === 'string' ? rule : rule.text;
                                                                             const ruleStatus = typeof rule === 'string' ? 'pending' : rule.status;
                                                                             return (
-                                                                                <li key={i} className={`fb-rule-item ${ruleStatus}`}>
-                                                                                    <span className="fb-rule-icon" title={ruleStatus === 'detected' ? 'Recién detectado' : 'Pendiente de aplicar'}>
-                                                                                        {ruleStatus === 'detected' && <FaExclamationTriangle />}
-                                                                                        {ruleStatus === 'pending' && <FaComment />}
-                                                                                    </span>
-                                                                                    <span className="fb-rule-text">{ruleText}</span>
+                                                                                <li key={i} className={`fb-rule-item ${ruleStatus} ${ruleTracking[ruleText] ? `tracked-${ruleTracking[ruleText]}` : ''}`}>
+                                                                                    <div className="fb-rule-main">
+                                                                                        <span className="fb-rule-number">#{i + 1}</span>
+                                                                                        <span className="fb-rule-icon" title={ruleStatus === 'detected' ? 'Recién detectado' : 'Pendiente de aplicar'}>
+                                                                                            {ruleStatus === 'detected' && <FaExclamationTriangle />}
+                                                                                            {ruleStatus === 'pending' && <FaComment />}
+                                                                                        </span>
+                                                                                        <span className="fb-rule-text">{ruleText}</span>
+                                                                                    </div>
+                                                                                    <div className="fb-rule-tracking-actions">
+                                                                                        <button 
+                                                                                            className={`fb-track-btn fb-track-leido ${ruleTracking[ruleText] === 'leido' ? 'active' : ''}`}
+                                                                                            onClick={() => toggleRuleTracking(ruleText, "leido")}
+                                                                                            title="Marcar como leído"
+                                                                                        >
+                                                                                            <span className="fb-track-icon">✓</span> Leído
+                                                                                        </button>
+                                                                                        <button 
+                                                                                            className={`fb-track-btn fb-track-revisar ${ruleTracking[ruleText] === 'revisar' ? 'active' : ''}`}
+                                                                                            onClick={() => toggleRuleTracking(ruleText, "revisar")}
+                                                                                            title="Marcar para revisar"
+                                                                                        >
+                                                                                            <span className="fb-track-icon">⚑</span> Revisar
+                                                                                        </button>
+                                                                                    </div>
                                                                                 </li>
                                                                             );
                                                                         })}
@@ -1140,12 +1219,31 @@ export default function FeedbackDashboard() {
                                                                             const ruleText = typeof rule === 'string' ? rule : rule.text;
                                                                             const ruleStatus = typeof rule === 'string' ? 'applied' : rule.status;
                                                                             return (
-                                                                                <li key={i} className={`fb-rule-item ${ruleStatus}`}>
-                                                                                    <span className="fb-rule-icon" title={ruleStatus === 'applied' ? 'Ya procesada' : 'Problema resuelto'}>
-                                                                                        {ruleStatus === 'applied' && <FaCheck />}
-                                                                                        {ruleStatus === 'resolved' && <FaCheckCircle />}
-                                                                                    </span>
-                                                                                    <span className="fb-rule-text">{ruleText}</span>
+                                                                                <li key={i} className={`fb-rule-item ${ruleStatus} ${ruleTracking[ruleText] ? `tracked-${ruleTracking[ruleText]}` : ''}`}>
+                                                                                    <div className="fb-rule-main">
+                                                                                        <span className="fb-rule-number">#{i + 1}</span>
+                                                                                        <span className="fb-rule-icon" title={ruleStatus === 'applied' ? 'Ya procesada' : 'Problema resuelto'}>
+                                                                                            {ruleStatus === 'applied' && <FaCheck />}
+                                                                                            {ruleStatus === 'resolved' && <FaCheckCircle />}
+                                                                                        </span>
+                                                                                        <span className="fb-rule-text">{ruleText}</span>
+                                                                                    </div>
+                                                                                    <div className="fb-rule-tracking-actions">
+                                                                                        <button 
+                                                                                            className={`fb-track-btn fb-track-leido ${ruleTracking[ruleText] === 'leido' ? 'active' : ''}`}
+                                                                                            onClick={() => toggleRuleTracking(ruleText, "leido")}
+                                                                                            title="Marcar como leído"
+                                                                                        >
+                                                                                            <span className="fb-track-icon">✓</span> Leído
+                                                                                        </button>
+                                                                                        <button 
+                                                                                            className={`fb-track-btn fb-track-revisar ${ruleTracking[ruleText] === 'revisar' ? 'active' : ''}`}
+                                                                                            onClick={() => toggleRuleTracking(ruleText, "revisar")}
+                                                                                            title="Marcar para revisar"
+                                                                                        >
+                                                                                            <span className="fb-track-icon">⚑</span> Revisar
+                                                                                        </button>
+                                                                                    </div>
                                                                                 </li>
                                                                             );
                                                                         })}
@@ -1157,6 +1255,7 @@ export default function FeedbackDashboard() {
                                                 </>
                                             );
                                         })()}
+                                        </div>
 
                                         {/* Sin problemas */}
                                         {(!section.problems || section.problems.length === 0) && section.stats.ok_pct > 70 && (
@@ -1165,7 +1264,7 @@ export default function FeedbackDashboard() {
                                             </div>
                                         )}
                                     </div>
-                                ))}
+                                )) : null})()}
                             </div>
 
                             {insightsData.sections.length === 0 && (
@@ -1189,72 +1288,136 @@ export default function FeedbackDashboard() {
 
                         {!loadingCorrections && (
                             <>
-                                {/* Cards de resumen por estado de aprobación */}
                                 {(() => {
-                                    const counts = { pending: 0, approved: 0, rejected: 0, consultar: 0 };
-                                    correctionsData.forEach(c => {
-                                        const s = c.approval_status || "pending";
-                                        if (s in counts) counts[s as keyof typeof counts]++;
-                                    });
-                                    return (
-                                        <div className="fb-summary-grid">
-                                            <div className="fb-card fb-card-partial">
-                                                <div className="fb-card-icon">⏳</div>
-                                                <div className="fb-card-data">
-                                                    <div className="fb-card-value">{counts.pending}</div>
-                                                    <div className="fb-card-label">Pendientes</div>
-                                                </div>
+                                    if (correctionsData.length === 0) {
+                                        return (
+                                            <div className="fb-panel">
+                                                <h2>📋 Detalle de correcciones</h2>
+                                                <div className="fb-empty">No hay correcciones registradas aún.</div>
                                             </div>
-                                            <div className="fb-card fb-card-ok">
-                                                <div className="fb-card-icon"><FaCheck /></div>
-                                                <div className="fb-card-data">
-                                                    <div className="fb-card-value">{counts.approved}</div>
-                                                    <div className="fb-card-label">Aprobadas</div>
-                                                </div>
-                                            </div>
-                                            <div className="fb-card fb-card-bad">
-                                                <div className="fb-card-icon"><FaTimes /></div>
-                                                <div className="fb-card-data">
-                                                    <div className="fb-card-value">{counts.rejected}</div>
-                                                    <div className="fb-card-label">Rechazadas</div>
-                                                </div>
-                                            </div>
-                                            <div className="fb-card fb-card-total">
-                                                <div className="fb-card-icon"><FaSearch /></div>
-                                                <div className="fb-card-data">
-                                                    <div className="fb-card-value">{counts.consultar}</div>
-                                                    <div className="fb-card-label">A consultar</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })()}
+                                        );
+                                    }
 
-                                {/* Lista de correcciones */}
-                                <div className="fb-panel">
-                                    <h2>📋 Detalle de correcciones</h2>
-                                    {correctionsData.length === 0 ? (
-                                        <div className="fb-empty">No hay correcciones registradas aún.</div>
-                                    ) : (
-                                        <div className="fb-table-wrap">
-                                            <table className="fb-table">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Fecha</th>
-                                                        <th>Quién</th>
-                                                        <th>Paciente</th>
-                                                        <th>Acción</th>
-                                                        <th>Item</th>
-                                                        <th>Origen</th>
-                                                        <th>Destino</th>
-                                                        <th>Estado</th>
-                                                        <th>EPC</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {correctionsData.map((c, i) => (
-                                                        <tr key={c._id || i}>
-                                                            <td className="fb-td-date" title={c.created_at || ""}>
+                                    // 1. Agrupar por sección para armar los TABS
+                                    const sectionsObj: Record<string, number> = {};
+                                    correctionsData.forEach(c => {
+                                        const s = c.from_section ? (c.from_section.charAt(0).toUpperCase() + c.from_section.slice(1).replace(/_/g, " ")) : "Sin Origen";
+                                        sectionsObj[s] = (sectionsObj[s] || 0) + 1;
+                                    });
+                                    const sections = Object.keys(sectionsObj).sort();
+                                    const currentSection = (activeCorrectionSection && sections.includes(activeCorrectionSection)) ? activeCorrectionSection : sections[0];
+                                    
+                                    // 2. Filtrar para la sección actual
+                                    const sectionCorrections = correctionsData.filter(c => {
+                                        const s = c.from_section ? (c.from_section.charAt(0).toUpperCase() + c.from_section.slice(1).replace(/_/g, " ")) : "Sin Origen";
+                                        return s === currentSection;
+                                    });
+
+                                    // 3. Contar KPIs basados SÓLO en `sectionCorrections`
+                                    const counts = { pending: 0, approved: 0, rejected: 0, consultar: 0 };
+                                    sectionCorrections.forEach(c => {
+                                        const status = c.approval_status || "pending";
+                                        if (status in counts) counts[status as keyof typeof counts]++;
+                                    });
+
+                                    // 4. Filtrar por estado de aprobación
+                                    const filteredCorrections = activeCorrectionStatusFilter
+                                        ? sectionCorrections.filter(c => (c.approval_status || "pending") === activeCorrectionStatusFilter)
+                                        : sectionCorrections;
+
+                                    return (
+                                        <div className="fb-corrections-section-wrapper">
+                                            {/* Sub-tabs for Correcciones en la parte SUPERIOR */}
+                                            <div className="fb-learning-subtabs" style={{ marginBottom: "20px" }}>
+                                                {sections.map(sec => (
+                                                    <button
+                                                        key={sec}
+                                                        className={`fb-learning-subtab ${currentSection === sec ? "active" : ""}`}
+                                                        onClick={() => {
+                                                            setActiveCorrectionSection(sec);
+                                                            setActiveCorrectionStatusFilter(null);
+                                                        }}
+                                                    >
+                                                        {sec}
+                                                        <span className="fb-corrections-badge" style={{ marginLeft: "8px", background: currentSection === sec ? "rgba(255,255,255,0.2)" : "rgba(3,105,161,0.1)", color: currentSection === sec ? "white" : "#0369a1" }}>
+                                                            {sectionsObj[sec]}
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {/* Cards de resumen por estado de aprobación */}
+                                            <div className="fb-summary-grid" style={{ marginBottom: "24px" }}>
+                                                <div 
+                                                    className={`fb-card fb-card-partial ${activeCorrectionStatusFilter === 'pending' ? 'active-filter' : ''}`}
+                                                    style={{ cursor: "pointer", opacity: activeCorrectionStatusFilter && activeCorrectionStatusFilter !== 'pending' ? 0.4 : 1, transition: "opacity 0.2s" }}
+                                                    onClick={() => setActiveCorrectionStatusFilter(activeCorrectionStatusFilter === 'pending' ? null : 'pending')}
+                                                >
+                                                    <div className="fb-card-icon">⏳</div>
+                                                    <div className="fb-card-data">
+                                                        <div className="fb-card-value">{counts.pending}</div>
+                                                        <div className="fb-card-label">Pendientes</div>
+                                                    </div>
+                                                </div>
+                                                <div 
+                                                    className={`fb-card fb-card-ok ${activeCorrectionStatusFilter === 'approved' ? 'active-filter' : ''}`}
+                                                    style={{ cursor: "pointer", opacity: activeCorrectionStatusFilter && activeCorrectionStatusFilter !== 'approved' ? 0.4 : 1, transition: "opacity 0.2s" }}
+                                                    onClick={() => setActiveCorrectionStatusFilter(activeCorrectionStatusFilter === 'approved' ? null : 'approved')}
+                                                >
+                                                    <div className="fb-card-icon"><FaCheck /></div>
+                                                    <div className="fb-card-data">
+                                                        <div className="fb-card-value">{counts.approved}</div>
+                                                        <div className="fb-card-label">Aprobadas</div>
+                                                    </div>
+                                                </div>
+                                                <div 
+                                                    className={`fb-card fb-card-bad ${activeCorrectionStatusFilter === 'rejected' ? 'active-filter' : ''}`}
+                                                    style={{ cursor: "pointer", opacity: activeCorrectionStatusFilter && activeCorrectionStatusFilter !== 'rejected' ? 0.4 : 1, transition: "opacity 0.2s" }}
+                                                    onClick={() => setActiveCorrectionStatusFilter(activeCorrectionStatusFilter === 'rejected' ? null : 'rejected')}
+                                                >
+                                                    <div className="fb-card-icon"><FaTimes /></div>
+                                                    <div className="fb-card-data">
+                                                        <div className="fb-card-value">{counts.rejected}</div>
+                                                        <div className="fb-card-label">Rechazadas</div>
+                                                    </div>
+                                                </div>
+                                                <div 
+                                                    className={`fb-card fb-card-total ${activeCorrectionStatusFilter === 'consultar' ? 'active-filter' : ''}`}
+                                                    style={{ cursor: "pointer", opacity: activeCorrectionStatusFilter && activeCorrectionStatusFilter !== 'consultar' ? 0.4 : 1, transition: "opacity 0.2s" }}
+                                                    onClick={() => setActiveCorrectionStatusFilter(activeCorrectionStatusFilter === 'consultar' ? null : 'consultar')}
+                                                >
+                                                    <div className="fb-card-icon"><FaSearch /></div>
+                                                    <div className="fb-card-data">
+                                                        <div className="fb-card-value">{counts.consultar}</div>
+                                                        <div className="fb-card-label">A consultar</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Lista de correcciones de la sección */}
+                                            <div className="fb-panel">
+                                                <h2>📋 Detalle de correcciones: {currentSection}</h2>
+                                                <div className="fb-table-wrap">
+                                                    <table className="fb-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th style={{ width: "40px", textAlign: "center" }}>#</th>
+                                                                <th>Fecha</th>
+                                                                <th>Quién</th>
+                                                                <th>Paciente</th>
+                                                                <th>Acción</th>
+                                                                <th>Item</th>
+                                                                <th>Origen</th>
+                                                                <th>Destino</th>
+                                                                <th>Estado</th>
+                                                                <th>EPC</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {filteredCorrections.map((c, i) => (
+                                                                <tr key={c._id || i}>
+                                                                    <td style={{ fontWeight: "bold", color: "#64748b", textAlign: "center" }}>{i + 1}</td>
+                                                                    <td className="fb-td-date" title={c.created_at || ""}>
                                                                 {c.created_at ? timeAgo(c.created_at) : "—"}
                                                             </td>
                                                             <td className="fb-td-who">
@@ -1373,8 +1536,10 @@ export default function FeedbackDashboard() {
                                                 </tbody>
                                             </table>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
+                                );
+                            })()}
 
                                 {/* Diccionario de mapeo aprendido */}
                                 <div className="fb-panel fb-panel-dictionary">

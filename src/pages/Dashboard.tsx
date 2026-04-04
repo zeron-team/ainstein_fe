@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "@/api/axios";
 import KPI from "@/components/KPI";
-import "./dashboard.css";
+import "./Dashboard.css";
 import {
   FaUsers,
   FaBed,

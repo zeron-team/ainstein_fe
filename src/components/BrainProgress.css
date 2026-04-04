@@ -1,0 +1,306 @@
+.multi-pass-progress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.multi-pass-progress-container {
+  background: white;
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.brain-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.brain-icon-pulse {
+  font-size: 48px;
+  color: #6366f1;
+  margin-bottom: 15px;
+  animation: brain-glow 2s infinite ease-in-out;
+}
+
+.brain-header h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.25rem;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.brain-header p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.steps-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.progress-step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+}
+
+.progress-step.active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.progress-step.completed {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.progress-step.pending {
+  opacity: 0.5;
+}
+
+.step-status {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-success {
+  color: #10b981;
+  font-size: 20px;
+}
+
+.icon-spin {
+  animation: spin 1s linear infinite;
+  font-size: 20px;
+}
+
+.icon-primary {
+  color: #3b82f6;
+}
+
+.icon-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.step-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.step-icon {
+  font-size: 18px;
+  color: #64748b;
+}
+
+.active .step-icon {
+  color: #3b82f6;
+}
+
+.completed .step-icon {
+  color: #10b981;
+}
+
+.step-text {
+  font-weight: 500;
+  color: #334155;
+  font-size: 0.95rem;
+}
+
+@keyframes brain-glow {
+  0% { text-shadow: 0 0 10px rgba(99, 102, 241, 0.2); transform: scale(1); }
+  50% { text-shadow: 0 0 25px rgba(99, 102, 241, 0.6); transform: scale(1.05); }
+  100% { text-shadow: 0 0 10px rgba(99, 102, 241, 0.2); transform: scale(1); }
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+/* Swarm Agents UI */
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.swarm-agents-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+  margin-left: 10px;
+  padding-left: 20px;
+  border-left: 2px dashed rgba(99, 102, 241, 0.3);
+}
+
+.swarm-agent {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(99, 102, 241, 0.04);
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.agent-working {
+  border-color: rgba(99, 102, 241, 0.35);
+  background: rgba(99, 102, 241, 0.06);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.08);
+}
+
+.agent-done {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.agent-working::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 4px;
+  background: #6366f1;
+  box-shadow: 0 0 10px #6366f1;
+}
+
+.agent-done::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 4px;
+  background: #10b981;
+}
+
+.agent-icon {
+  font-size: 20px;
+  color: #64748b;
+}
+
+.agent-working .agent-icon {
+  color: #6366f1;
+  animation: pulse-icon 2s infinite;
+}
+
+.agent-done .agent-icon {
+  color: #10b981;
+}
+
+@keyframes pulse-icon {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+.agent-details {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.agent-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1e293b;
+  letter-spacing: 0.3px;
+}
+
+.agent-done .agent-name {
+  color: #064e3b;
+}
+
+.agent-role {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-top: 3px;
+}
+
+.agent-done .agent-role {
+  color: #059669;
+  font-weight: 600;
+}
+
+.agent-activity-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #6366f1, #a78bfa, transparent);
+  width: 40%;
+  animation: scanning 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes scanning {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+/* Parallel Pulse Effect */
+.parallel-pulse {
+  position: relative;
+}
+
+.brain-echo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+}
+
+.brain-echo-1 {
+  color: #a855f7;
+  animation: echo 3s infinite 0.5s;
+}
+
+.brain-echo-2 {
+  color: #06b6d4;
+  animation: echo 3s infinite 1.5s;
+}
+
+@keyframes echo {
+  0% { transform: scale(1); opacity: 0.5; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+
+.parallel-step .step-content {
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+}

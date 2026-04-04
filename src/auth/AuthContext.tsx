@@ -40,26 +40,15 @@ function decodeJwt(token: string): any {
 }
 
 function persistToken(tok: string) {
-  // guardamos en keys más comunes para que TODO el sistema lo encuentre
-  localStorage.setItem("token", tok);
   localStorage.setItem("access_token", tok);
-  localStorage.setItem("AUTH_TOKEN", tok);
-  localStorage.setItem("ACCESS_TOKEN", tok);
 
   // seteo global en axios
   api.defaults.headers.common.Authorization = `Bearer ${tok}`;
 }
 
 function clearToken() {
-  const keys = [
-    "token",
-    "access_token",
-    "AUTH_TOKEN",
-    "ACCESS_TOKEN",
-    "jwt",
-    "id_token",
-    "auth_token",
-  ];
+  // Clean canonical key + legacy keys that might exist from older versions
+  const keys = ["access_token", "token", "AUTH_TOKEN", "ACCESS_TOKEN", "jwt", "id_token", "auth_token"];
   keys.forEach((k) => localStorage.removeItem(k));
   keys.forEach((k) => sessionStorage.removeItem(k));
   delete (api.defaults.headers.common as any).Authorization;
@@ -104,11 +93,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // rehidratar sesión
   useEffect(() => {
-    const saved =
-      localStorage.getItem("access_token") ||
-      localStorage.getItem("token") ||
-      sessionStorage.getItem("access_token") ||
-      sessionStorage.getItem("token");
+    const saved = localStorage.getItem("access_token");
 
     if (saved) {
       const payload = decodeJwt(saved);

@@ -23,8 +23,8 @@ const Login: React.FC = () => {
   const nav = useNavigate();
 
   const lastUser = useMemo(() => localStorage.getItem("last_username") ?? "", []);
-  const [username, setUsername] = useState<string>(lastUser || "admin");
-  const [password, setPassword] = useState<string>("Admin123!");
+  const [username, setUsername] = useState<string>(lastUser || "");
+  const [password, setPassword] = useState<string>("");
   const [remember, setRemember] = useState<boolean>(!!lastUser);
   const [showPw, setShowPw] = useState<boolean>(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
