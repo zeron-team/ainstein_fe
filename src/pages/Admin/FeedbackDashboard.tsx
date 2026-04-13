@@ -39,6 +39,7 @@ type FeedbackStats = {
         partial_pct: number;
         bad_pct: number;
         hce_bad_pct: number;
+        total_users?: number;
     };
     by_section: Record<string, { ok: number; partial: number; bad: number; hce_bad: number; total: number }>;
     questions_summary: {
@@ -305,7 +306,7 @@ export default function FeedbackDashboard() {
         content: ""
     });
 
-    const openInfoModal = (type: "ok" | "partial" | "bad" | "hce_bad" | "total") => {
+    const openInfoModal = (type: "ok" | "partial" | "bad" | "hce_bad" | "total" | "total_users") => {
         const infos = {
             ok: {
                 title: "✅ OK - Feedback Positivo",
@@ -326,6 +327,10 @@ export default function FeedbackDashboard() {
             total: {
                 title: "📊 Total de Feedbacks",
                 content: "Suma de todos los feedbacks registrados (OK + Parcial + Mal + HCE).\n\n• Cada evaluación de sección cuenta como 1 feedback\n• Un EPC puede tener múltiples feedbacks (uno por sección)\n• Representa el volumen total de datos de entrenamiento"
+            },
+            total_users: {
+                title: "👨‍⚕️ Usuarios Evaluadores",
+                content: "Total de usuarios únicos médicos/auditores que han realizado evaluaciones.\n\n• Cada persona se cuenta 1 sola vez independientemente de cuántas evaluaciones haya hecho\n• Refleja la adopción del sistema de feedback"
             }
         };
         setInfoModal({ open: true, ...infos[type] });
@@ -608,6 +613,16 @@ export default function FeedbackDashboard() {
                             <div className="fb-card-data">
                                 <div className="fb-card-value">{summary.total}</div>
                                 <div className="fb-card-label">Total feedbacks</div>
+                            </div>
+                        </div>
+                        <div className="fb-card fb-card-total" style={{ borderLeftColor: "var(--fb-color-neutral)" }}>
+                            <div className="fb-card-info-icon" onClick={() => openInfoModal("total_users")}>
+                                <FaInfoCircle />
+                            </div>
+                            <div className="fb-card-icon"><FaUserMd /></div>
+                            <div className="fb-card-data">
+                                <div className="fb-card-value">{summary.total_users || 0}</div>
+                                <div className="fb-card-label">Usuarios únicos</div>
                             </div>
                         </div>
                     </div>

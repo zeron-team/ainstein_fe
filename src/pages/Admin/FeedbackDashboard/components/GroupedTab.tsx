@@ -44,6 +44,18 @@ export default function GroupedTab({
     toggleTextExpand,
     deleteEvaluatorFeedback,
 }: GroupedTabProps) {
+    // Calcular usuarios unicos globales a partir de los datos agruados
+    // (antes de aplicar el filtro de busqueda, o usamos sortedGroupedData si queremos que se filtre,
+    // mejor usar todos los datos de 'sortedGroupedData' pero usualmente se necesita total global.
+    // Como no pasamos groupedData original, usamos sortedGroupedData pero es obvio que si filtra solo vera los evaluadores de esos epcs.
+    // Lo ideal es tener el global. Lo sacamos de sortedGroupedData para que refleje la busqueda.
+    const uniqueUsersInView = new Set();
+    sortedGroupedData.forEach(epc => {
+        epc.evaluators.forEach(e => {
+            uniqueUsersInView.add(e.evaluator_id || e.evaluator_name);
+        });
+    });
+
     return (
         <div className="fb-grouped-view">
             {/* Controles de ordenamiento */}
@@ -57,6 +69,10 @@ export default function GroupedTab({
                         onChange={e => setSearchGrouped(e.target.value)}
                         className="fb-search-input"
                     />
+                </div>
+                <div className="fb-global-users-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--fb-color-neutral-light)', padding: '6px 12px', borderRadius: '20px', fontSize: '0.9rem', color: 'var(--fb-color-neutral)' }}>
+                    <FaUserMd />
+                    <span><strong>{uniqueUsersInView.size}</strong> evaluador{uniqueUsersInView.size !== 1 ? 'es' : ''} en esta vista</span>
                 </div>
                 <button
                     className="fb-sort-btn"
@@ -103,7 +119,7 @@ export default function GroupedTab({
                                 {epc.total_sections_evaluated} evaluaciones
                             </span>
                             <span className="fb-epc-evaluators">
-                                {epc.evaluators.length} evaluador{epc.evaluators.length !== 1 ? "es" : ""}
+                                {new Set(epc.evaluators.map(e => e.evaluator_id || e.evaluator_name)).size} evaluador{new Set(epc.evaluators.map(e => e.evaluator_id || e.evaluator_name)).size !== 1 ? "es" : ""}
                             </span>
                         </div>
                     </div>
